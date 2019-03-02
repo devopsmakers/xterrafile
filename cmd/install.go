@@ -53,7 +53,7 @@ to quickly create a Cobra application.`,
 			moduleVersion := moduleMeta["version"]
 
 			switch {
-			case IContains(moduleSource, "github"):
+			case IContains(moduleSource, "git"):
 				gitCheckout(moduleName, moduleSource, moduleVersion)
 			}
 		}
