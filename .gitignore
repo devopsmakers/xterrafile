@@ -6,3 +6,4 @@ _vendor-*
 
 Terrafile
 xterrafile
+dist/
