@@ -18,14 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package cmd
 
 import (
-	"github.com/devopsmakers/xterrafile/cmd"
-	jww "github.com/spf13/jwalterweatherman"
+  "os"
+  "strings"
+  jww "github.com/spf13/jwalterweatherman"
 )
 
-func main() {
-	jww.SetStdoutThreshold(jww.LevelWarn)
-	cmd.Execute()
+// CheckIfError should be used to naively panics if an error is not nil.
+func CheckIfError(err error) {
+	if err == nil {
+		return
+	}
+	jww.FATAL.Println(err)
+  os.Exit(1)
+}
+
+func IContains(a, b string) bool {
+  return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
 }

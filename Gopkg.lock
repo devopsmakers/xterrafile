@@ -332,6 +332,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/spf13/cobra",
+    "github.com/spf13/jwalterweatherman",
     "github.com/spf13/viper",
     "gopkg.in/src-d/go-git.v4",
   ]

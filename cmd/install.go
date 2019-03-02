@@ -21,11 +21,14 @@
 package cmd
 
 import (
-	"fmt"
-
+	"os"
+  "path"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	jww "github.com/spf13/jwalterweatherman"
+
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 
 )
 
@@ -40,12 +43,19 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("install called")
+		os.RemoveAll(VendorDir)
+		os.MkdirAll(VendorDir, os.ModePerm)
 
 		for moduleName, _ := range viper.AllSettings() {
 			moduleMeta := viper.GetStringMapString(moduleName)
 
-			fmt.Println(moduleMeta["source"])
+			moduleSource := moduleMeta["source"]
+			moduleVersion := moduleMeta["version"]
+
+			switch {
+			case IContains(moduleSource, "github"):
+				gitCheckout(moduleName, moduleSource, moduleVersion)
+			}
 		}
 	},
 }
@@ -62,4 +72,38 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// installCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func gitCheckout(name string, repo string, version string) {
+  jww.WARN.Printf("[%s] Checking out %s from %s", name, version, repo)
+
+	directory := path.Join(VendorDir, name)
+
+	r, err := git.PlainClone(directory, false, &git.CloneOptions{
+		URL: repo,
+		NoCheckout: true,
+	})
+	CheckIfError(err)
+
+	w, err := r.Worktree()
+	CheckIfError(err)
+
+  // Try checkoing out commits, tags and branches
+	err = w.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(version),
+	})
+	if err != nil {
+		err = w.Checkout(&git.CheckoutOptions{
+			Branch: plumbing.ReferenceName("refs/tags/" + version),
+		})
+	}
+	if err != nil {
+		err = w.Checkout(&git.CheckoutOptions{
+			Branch: plumbing.ReferenceName("refs/heads/" + version),
+		})
+	}
+	CheckIfError(err)
+
+	// Cleanup .git directory
+	os.RemoveAll(path.Join(directory, ".git"))
 }

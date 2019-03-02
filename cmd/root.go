@@ -29,6 +29,7 @@ import (
 )
 
 var cfgFile string
+var VendorDir string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -57,7 +58,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is Terrafile.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&vendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
+	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
 }
 
 // initConfig reads in config file and ENV variables if set.
