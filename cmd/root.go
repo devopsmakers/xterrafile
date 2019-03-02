@@ -23,13 +23,20 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"io/ioutil"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
+
+type module struct {
+	Source  string `yaml:"source"`
+	Version string `yaml:"version"`
+}
 
 var cfgFile string
 var VendorDir string
+var Config map[string]module
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -56,26 +63,18 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is Terrafile.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
+	if (len(os.Args) > 1) && (os.Args[1] != "version") {
+	  cobra.OnInitialize(initConfig)
+	  rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file (default is: Terrafile)")
+	  rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
+  }
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Search config in home directory with name ".xterrafile" (without extension).
-		viper.AddConfigPath(".")
-		viper.SetConfigName("Terrafile")
-	}
+	yamlFile, err := ioutil.ReadFile(cfgFile)
+  CheckIfError(err)
 
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+	err = yaml.Unmarshal(yamlFile, &Config)
+	CheckIfError(err)
 }
