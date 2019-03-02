@@ -1,5 +1,5 @@
 builds:
-  ldflags:
+  - ldflags:
      - -s -w -X cmd.version={{.Version}} -X cmd.commit={{.ShortCommit}} -X cmd.date={{.Date}}
 archive:
   # Replacements for GOOS and GOARCH in the archive name.
