@@ -21,9 +21,10 @@
 package cmd
 
 import (
-  "os"
-  "strings"
-  jww "github.com/spf13/jwalterweatherman"
+	"os"
+	"strings"
+
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // CheckIfError should be used to naively panics if an error is not nil.
@@ -32,9 +33,9 @@ func CheckIfError(err error) {
 		return
 	}
 	jww.FATAL.Println(err)
-  os.Exit(1)
+	os.Exit(1)
 }
 
 func IContains(a, b string) bool {
-  return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
+	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
 }

@@ -22,13 +22,12 @@ package cmd
 
 import (
 	"os"
-  "path"
+	"path"
+
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
-
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-
 )
 
 // installCmd represents the install command
@@ -43,7 +42,7 @@ var installCmd = &cobra.Command{
 			moduleSource := moduleMeta.Source
 			moduleVersion := "master"
 			if len(moduleMeta.Version) > 0 {
-			  moduleVersion = moduleMeta.Version
+				moduleVersion = moduleMeta.Version
 			}
 
 			switch {
@@ -59,12 +58,12 @@ func init() {
 }
 
 func gitCheckout(name string, repo string, version string) {
-  jww.WARN.Printf("[%s] Checking out %s from %s", name, version, repo)
+	jww.WARN.Printf("[%s] Checking out %s from %s", name, version, repo)
 
 	directory := path.Join(VendorDir, name)
 
 	r, err := git.PlainClone(directory, false, &git.CloneOptions{
-		URL: repo,
+		URL:        repo,
 		NoCheckout: true,
 	})
 	CheckIfError(err)
@@ -72,7 +71,7 @@ func gitCheckout(name string, repo string, version string) {
 	w, err := r.Worktree()
 	CheckIfError(err)
 
-  // Try checkoing out commits, tags and branches
+	// Try checkoing out commits, tags and branches
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash: plumbing.NewHash(version),
 	})

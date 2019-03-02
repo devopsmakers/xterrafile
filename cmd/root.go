@@ -22,8 +22,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -41,16 +41,7 @@ var Config map[string]module
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "xterrafile",
-	Short: "Manage any vendored modules with a YAML file.",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: "Manage vendored modules with a YAML file.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -64,16 +55,16 @@ func Execute() {
 
 func init() {
 	if (len(os.Args) > 1) && (os.Args[1] != "version") {
-	  cobra.OnInitialize(initConfig)
-	  rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file (default is: Terrafile)")
-	  rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
-  }
+		cobra.OnInitialize(initConfig)
+		rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
+		rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	yamlFile, err := ioutil.ReadFile(cfgFile)
-  CheckIfError(err)
+	CheckIfError(err)
 
 	err = yaml.Unmarshal(yamlFile, &Config)
 	CheckIfError(err)
