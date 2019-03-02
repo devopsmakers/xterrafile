@@ -1,0 +1,48 @@
+archive:
+  # Replacements for GOOS and GOARCH in the archive name.
+  # Keys should be valid GOOSs or GOARCHs.
+  # Values are the respective replacements.
+  # Default is empty.
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    386: i386
+    amd64: x86_64
+
+  # Additional files/globs you want to add to the archive.
+  # Defaults are any files matching `LICENCE*`, `LICENSE*`,
+  # `README*` and `CHANGELOG*` (case-insensitive).
+  files:
+    - none*
+brew:
+  # Repository to push the tap to.
+  github:
+    owner: devopsmakers
+    name: homebrew-xterrafile
+
+  # Git author used to commit to the repository.
+  # Defaults are shown.
+  commit_author:
+    name: pysysops
+    email: tim.birkett@devopsmakers.com
+
+  # Folder inside the repository to put the formula.
+  # Default is the root folder.
+  folder: Formula
+
+  # Your app's homepage.
+  # Default is empty.
+  homepage: "https://github.com/devopsmakers/xterrafile"
+
+  # Your app's description.
+  # Default is empty.
+  description: "Systematically manage external modules from Github for use in Terraform."
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - '^Update README'
+    - Merge pull request
+    - Merge branch
