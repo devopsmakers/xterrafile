@@ -1,6 +1,8 @@
 builds:
   - ldflags:
      - -s -w -X github.com/devopsmakers/xterrafile/cmd.version={{.Version}} -X github.com/devopsmakers/xterrafile/cmd.commit={{.ShortCommit}} -X github.com/devopsmakers/xterrafile/cmd.date={{.Date}}
+    hooks:
+      post: upx dist/*/xterrafile
 archive:
   # Replacements for GOOS and GOARCH in the archive name.
   # Keys should be valid GOOSs or GOARCHs.
