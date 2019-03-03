@@ -57,7 +57,7 @@ func Execute() {
 func init() {
 	// Exclude certain commands from initConfig
 	commandRe := regexp.MustCompile(`(version|help)`)
-	if (len(os.Args) > 1) && ! commandRe.MatchString(os.Args[1]) {
+	if (len(os.Args) > 1) && !commandRe.MatchString(os.Args[1]) {
 		cobra.OnInitialize(initConfig)
 	}
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
