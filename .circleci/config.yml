@@ -4,12 +4,6 @@ aliases:
     command: |
       go get -u github.com/golang/dep/cmd/dep
       dep ensure
-  - &get_upx
-    name: get_upx
-    command: |
-      mkdir -p $GOPATH/bin \
-        && wget -q https://github.com/barnybug/cli53/releases/download/0.6.0/upx -O $GOPATH/bin/upx \
-        && chmod +x $GOPATH/bin/upx
 defaults: &defaults
   working_directory: /go/src/github.com/devopsmakers/xterrafile
   docker:
@@ -32,7 +26,7 @@ jobs:
     steps:
       - checkout
       - run: *dep_ensure
-      - run: *get_upx
+      - run: sudo apt-get install -y upx && sudo apt-get clean
       - run: curl -sL https://git.io/goreleaser | bash
 workflows:
   version: 2
