@@ -1,4 +1,4 @@
-# Terrafile [![Build Status](https://circleci.com/gh/devopsmakers/xterrafile.svg?style=shield)](https://circleci.com/gh/devopsmakers/xterrafile)
+# XTerrafile [![Build Status](https://circleci.com/gh/devopsmakers/xterrafile.svg?style=shield)](https://circleci.com/gh/devopsmakers/xterrafile)
 
 `xterrafile` is a binary written in Go to manage external modules from Github for use in (but not limited to) Terraform. See this [article](http://bensnape.com/2016/01/14/terraform-design-patterns-the-terrafile/) for more information on how it was introduced in a Ruby rake task.
 
@@ -11,11 +11,11 @@ brew tap devopsmakers/xterrafile && brew install xterrafile
 ```
 
 ### Linux
-Download your preferred flavor from the [releases](https://github.com/devopsmakers/xterrafile/releases/latest) page and install manually.
+Download your preferred flavour from the [releases](https://github.com/devopsmakers/xterrafile/releases/latest) page and install manually.
 
 For example:
 ```sh
-curl -L https://github.com/devopsmakers/xterrafile/releases/download/v{VERSION}/terrafile_{VERSION}_Linux_x86_64.tar.gz | tar xz -C /usr/local/bin
+curl -L https://github.com/devopsmakers/xterrafile/releases/download/v{VERSION}/xterrafile_{VERSION}_Linux_x86_64.tar.gz | tar xz -C /usr/local/bin
 ```
 
 ## How to use
@@ -38,9 +38,30 @@ tf-aws-vpc-commit:
 The `version` can be a tag, a branch or a commit hash. By default, `xterrafile`
 will checkout the master branch of a module.
 
-Modules will be downloaded to `./vendor/xterrafile/`.
+Modules will be downloaded to `./vendor/xterrafile/` by default.
 
 ### Example Usage
+Help:
+```
+xterrafile help
+Manage vendored modules with a YAML file.
+
+Usage:
+  xterrafile [command]
+
+Available Commands:
+  help        Help about any command
+  install     Installs the modules in your Terrafile
+  version     Show version information for xterrafile
+
+Flags:
+  -d, --directory string   module directory (default "vendor/xterrafile")
+  -f, --file string        config file (default "Terrafile")
+  -h, --help               help for xterrafile
+
+Use "xterrafile [command] --help" for more information about a command.
+```
+
 Defaults:
 ```
 xterrafile install
@@ -48,10 +69,10 @@ xterrafile install
 
 Custom "Terrafile":
 ```
-xterrafile -f Saltfile
+xterrafile -f Saltfile install
 ```
 
-Custom download directory:
+Custom "Terrafile" and custom download directory:
 ```
-xterrafile -f Saltfile -d /srv/formulas
+xterrafile -f Saltfile -d /srv/formulas install
 ```

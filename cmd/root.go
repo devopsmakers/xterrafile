@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -54,11 +55,13 @@ func Execute() {
 }
 
 func init() {
-	if (len(os.Args) > 1) && (os.Args[1] != "version") {
+	// Exclude certain commands from initConfig
+	commandRe := regexp.MustCompile(`(version|help)`)
+	if (len(os.Args) > 1) && ! commandRe.MatchString(os.Args[1]) {
 		cobra.OnInitialize(initConfig)
-		rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
-		rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "directory to download modules to")
 	}
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
+	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "module directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
