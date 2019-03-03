@@ -22,10 +22,8 @@ package main
 
 import (
 	"github.com/devopsmakers/xterrafile/cmd"
-	jww "github.com/spf13/jwalterweatherman"
 )
 
 func main() {
-	jww.SetStdoutThreshold(jww.LevelWarn)
 	cmd.Execute()
 }

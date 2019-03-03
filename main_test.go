@@ -33,6 +33,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 	// Assert output
 	for _, output := range []string{
+		"Removing all modules in vendor/xterrafile",
 		"Checking out master from git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out v1.46.0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",

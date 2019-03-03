@@ -44,6 +44,7 @@ var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Installs the modules in your Terrafile",
 	Run: func(cmd *cobra.Command, args []string) {
+		jww.WARN.Printf("Removing all modules in %s", VendorDir)
 
 		os.RemoveAll(VendorDir)
 		os.MkdirAll(VendorDir, os.ModePerm)
@@ -75,11 +76,12 @@ var installCmd = &cobra.Command{
 }
 
 func init() {
+	jww.SetStdoutThreshold(jww.LevelInfo)
 	rootCmd.AddCommand(installCmd)
 }
 
 func getRegistrySource(name string, source string, version string) (string, string) {
-	jww.WARN.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, version)
+	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, version)
 	if version == "master" {
 		err := errors.New("Registry module version must be specified")
 		CheckIfError(err)
@@ -128,13 +130,13 @@ func validRegistry(source string) bool {
 }
 
 func copyFile(name string, src string, dst string) {
-	jww.WARN.Printf("[%s] Copying from %s", name, src)
+	jww.INFO.Printf("[%s] Copying from %s", name, src)
 	err := copy.Copy(src, dst)
 	CheckIfError(err)
 }
 
 func gitCheckout(name string, repo string, version string, directory string) {
-	jww.WARN.Printf("[%s] Checking out %s from %s", name, version, repo)
+	jww.INFO.Printf("[%s] Checking out %s from %s", name, version, repo)
 
 	r, err := git.PlainClone(directory, false, &git.CloneOptions{
 		URL:        repo,
