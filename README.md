@@ -21,20 +21,38 @@ curl -L https://github.com/devopsmakers/xterrafile/releases/download/v{VERSION}/
 ## How to use
 By default, `xterrafile` expects a file named `Terrafile` which will contain your terraform module dependencies in YAML format.
 
-An example Terrafile:
+Specifying modules in your `Terrafile`:
 ```
-tf-aws-vpc:
-    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-    version: "v1.46.0"
-tf-aws-vpc-experimental:
-    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-    version: "master"
-tf-aws-vpc-default:
-    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-tf-aws-vpc-commit:
-    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-    version: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
+# Terraform Registry module
+terraform-digitalocean-droplet:
+  source: "terraform-digitalocean-modules/droplet/digitalocean"
+  version: "0.1.7"
+
+# Git module (HTTPS)
+terraform-digitalocean-droplet:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  // No version defaults to master branch
+
+# Git module (SSH + Tag)
+terraform-digitalocean-droplet:
+  source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "v0.1.7" // Checkout tags
+
+# Git module (HTTPS + Branch)
+terraform-digitalocean-droplet:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "new_feature" // Checkout branches
+
+# Git module (SSH + Commit)
+terraform-digitalocean-droplet:
+  source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f" // Checkout a commit
+
+# Local directory module
+terraform-digitalocean-droplet:
+  source: "../../modules/terraform-digitalocean-droplet"
 ```
+
 The `version` can be a tag, a branch or a commit hash. By default, `xterrafile`
 will checkout the master branch of a module.
 
