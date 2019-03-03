@@ -62,7 +62,7 @@ var installCmd = &cobra.Command{
 				moduleSource, "../") || strings.HasPrefix(moduleSource, "/"):
 				copyFile(moduleName, moduleSource, directory)
 			case validRegistry(moduleSource):
-				source, version := getRegistrySource(moduleSource, moduleVersion)
+				source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
 				gitCheckout(moduleName, source, version, directory)
 			case IContains(moduleSource, "git"):
 				gitCheckout(moduleName, moduleSource, moduleVersion, directory)
@@ -78,7 +78,8 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 }
 
-func getRegistrySource(source string, version string) (string, string) {
+func getRegistrySource(name string, source string, version string) (string, string) {
+	jww.WARN.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, version)
 	if version == "master" {
 		err := errors.New("Registry module version must be specified")
 		CheckIfError(err)
@@ -102,7 +103,10 @@ func getRegistrySource(source string, version string) (string, string) {
 	CheckIfError(err)
 	defer resp.Body.Close()
 
-	githubDownloadURL := resp.Header["X-Terraform-Get"][0]
+	var githubDownloadURL = ""
+	if len(resp.Header["X-Terraform-Get"]) > 0 {
+		githubDownloadURL = resp.Header["X-Terraform-Get"][0]
+	}
 
 	if githubDownloadURLRe.MatchString(githubDownloadURL) {
 		matches := githubDownloadURLRe.FindStringSubmatch(githubDownloadURL)
@@ -110,7 +114,7 @@ func getRegistrySource(source string, version string) (string, string) {
 		source = fmt.Sprintf("https://github.com/%s/%s.git", user, repo)
 		return source, version
 	}
-	err = errors.New("Unable to find module download url")
+	err = errors.New("Unable to find module / version download url")
 	CheckIfError(err)
 	return "", "" // Never reacbhes here
 }

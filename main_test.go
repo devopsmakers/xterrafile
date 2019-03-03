@@ -38,6 +38,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out v0.7.0 from https://github.com/claranet/terraform-aws-lambda.git",
 		"Copying from ./test/module",
+		"Looking up claranet/lambda/aws version 0.7.0 in Terraform registry",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
