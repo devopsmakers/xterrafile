@@ -2,6 +2,10 @@
 
 `xterrafile` is a binary written in Go to manage external modules from Github for use in (but not limited to) Terraform. See this [article](http://bensnape.com/2016/01/14/terraform-design-patterns-the-terrafile/) for more information on how it was introduced in a Ruby rake task.
 
+Inspiration was taken from:
+* https://github.com/coretech/terrafile
+* https://github.com/claranet/python-terrafile
+
 ## How to install
 
 ### macOS
