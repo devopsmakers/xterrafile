@@ -34,23 +34,26 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	// Assert output
 	for _, output := range []string{
 		"Removing all modules in vendor/xterrafile",
-		"Checking out master from git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out v1.46.0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out v0.7.0 from https://github.com/claranet/terraform-aws-lambda.git",
-		"Copying from ./test/module",
-		"Looking up claranet/lambda/aws version 0.7.0 in Terraform registry",
+		"[terrafile-test-registry] Looking up terraform-digitalocean-modules/droplet/digitalocean version 0.1.7 in Terraform registry",
+		"[terrafile-test-registry] Checking out v0.1.7 from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-https] Checking out master from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-tag] Checking out v0.1.7 from git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-branch] Checking out branch_test from git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-commit] Checking out 2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-path] Checking out v0.1.7 from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-local] Copying from ./test/module",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
 	// Assert files exist
 	for _, moduleName := range []string{
-		"tf-aws-vpc",
-		"tf-aws-vpc-experimental",
-		"tf-aws-vpc-commit",
-		"tf-aws-vpc-default",
-		"terraform-aws-lambda",
-		"terraform-test-path",
+		"terrafile-test-registry",
+		"terrafile-test-https",
+		"terrafile-test-tag",
+		"terrafile-test-branch",
+		"terrafile-test-commit",
+		"terrafile-test-path",
+		"terrafile-test-local",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/xterrafile", moduleName))
 	}
@@ -70,21 +73,25 @@ func createFile(t *testing.T, filename string, contents string) {
 }
 
 func createTerrafile(t *testing.T, folder string) {
-	var yaml = `tf-aws-vpc:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "v1.46.0"
-tf-aws-vpc-experimental:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "master"
-tf-aws-vpc-commit:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
-tf-aws-vpc-default:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-terraform-aws-lambda:
-  source: "claranet/lambda/aws"
-  version: "0.7.0"
-terraform-test-path:
+	var yaml = `terrafile-test-registry:
+  source: "terraform-digitalocean-modules/droplet/digitalocean"
+  version: "0.1.7"
+terrafile-test-https:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+terrafile-test-tag:
+  source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "v0.1.7"
+terrafile-test-branch:
+  source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "branch_test"
+terrafile-test-commit:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"
+terrafile-test-path:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "v0.1.7"
+  path: "examples/simple"
+terrafile-test-local:
   source: "./test/module"
 `
 	createFile(t, path.Join(folder, "Terrafile.test"), yaml)

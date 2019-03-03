@@ -55,6 +55,7 @@ var installCmd = &cobra.Command{
 			if len(moduleMeta.Version) > 0 {
 				moduleVersion = moduleMeta.Version
 			}
+			modulePath := moduleMeta.Path
 
 			directory := path.Join(VendorDir, moduleName)
 
@@ -67,7 +68,19 @@ var installCmd = &cobra.Command{
 				gitCheckout(moduleName, source, version, directory)
 			case IContains(moduleSource, "git"):
 				gitCheckout(moduleName, moduleSource, moduleVersion, directory)
+			}
 
+			// If we have a path specified, let's extract it (move and copy stuff).
+			if len(modulePath) > 0 {
+				tmpDirectory := directory + ".tmp"
+				pathWanted := path.Join(tmpDirectory, modulePath)
+
+				err := os.Rename(directory, tmpDirectory)
+				CheckIfError(err)
+
+				err = copy.Copy(pathWanted, directory)
+				CheckIfError(err)
+				os.RemoveAll(tmpDirectory)
 			}
 			// Cleanup .git directoriy
 			os.RemoveAll(path.Join(directory, ".git"))

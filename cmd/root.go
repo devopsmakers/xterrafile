@@ -33,10 +33,15 @@ import (
 type module struct {
 	Source  string `yaml:"source"`
 	Version string `yaml:"version"`
+	Path    string `yaml:"path"`
 }
 
 var cfgFile string
+
+// VendorDir is the directory to download modules to
 var VendorDir string
+
+// Config holds our module information
 var Config map[string]module
 
 // rootCmd represents the base command when called without any subcommands

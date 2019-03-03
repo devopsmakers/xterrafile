@@ -52,6 +52,12 @@ terraform-digitalocean-droplet:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
   version: "2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f" // Checkout a commit
 
+# Get a path from within a Git monorepo
+terraform-digitalocean-droplet:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  version: "v0.1.7"
+  path: "examples/simple"
+
 # Local directory module
 terraform-digitalocean-droplet:
   source: "../../modules/terraform-digitalocean-droplet"
