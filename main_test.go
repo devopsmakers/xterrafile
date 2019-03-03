@@ -36,6 +36,8 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"Checking out master from git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out v1.46.0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 from git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out v0.7.0 from https://github.com/claranet/terraform-aws-lambda.git",
+		"Copying from ./test/module",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
@@ -45,6 +47,8 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"tf-aws-vpc-experimental",
 		"tf-aws-vpc-commit",
 		"tf-aws-vpc-default",
+		"terraform-aws-lambda",
+		"terraform-test-path",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/xterrafile", moduleName))
 	}
@@ -75,6 +79,11 @@ tf-aws-vpc-commit:
   version: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
 tf-aws-vpc-default:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+terraform-aws-lambda:
+  source: "claranet/lambda/aws"
+  version: "0.7.0"
+terraform-test-path:
+  source: "./test/module"
 `
 	createFile(t, path.Join(folder, "Terrafile.test"), yaml)
 }

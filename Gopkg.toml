@@ -49,6 +49,10 @@
   name = "gopkg.in/yaml.v2"
   version = "2.2.2"
 
+[[constraint]]
+  name =  "github.com/otiai10/copy"
+  version = "v1.0.1"
+
 [prune]
   go-tests = true
   unused-packages = true
