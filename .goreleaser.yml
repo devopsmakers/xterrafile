@@ -1,5 +1,6 @@
 builds:
-  - ldflags:
+  -
+    ldflags:
      - -s -w -X github.com/devopsmakers/xterrafile/cmd.version={{.Version}} -X github.com/devopsmakers/xterrafile/cmd.commit={{.ShortCommit}} -X github.com/devopsmakers/xterrafile/cmd.date={{.Date}}
     hooks:
       post: /bin/sh upx.sh
