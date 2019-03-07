@@ -152,27 +152,21 @@ func gitCheckout(name string, repo string, version string, directory string) {
 	jww.INFO.Printf("[%s] Checking out %s from %s", name, version, repo)
 
 	r, err := git.PlainClone(directory, false, &git.CloneOptions{
-		URL:        repo,
-		NoCheckout: true,
+		URL: repo,
 	})
+	CheckIfError(err)
+
+	h, err := r.ResolveRevision(plumbing.Revision(version))
+	if err != nil {
+		h, err = r.ResolveRevision(plumbing.Revision("origin/" + version))
+	}
 	CheckIfError(err)
 
 	w, err := r.Worktree()
 	CheckIfError(err)
 
-	// Try checkoing out commits, tags and branches
 	err = w.Checkout(&git.CheckoutOptions{
-		Hash: plumbing.NewHash(version),
+		Hash: plumbing.NewHash(h.String()),
 	})
-	if err != nil {
-		err = w.Checkout(&git.CheckoutOptions{
-			Branch: plumbing.ReferenceName("refs/tags/" + version),
-		})
-	}
-	if err != nil {
-		err = w.Checkout(&git.CheckoutOptions{
-			Branch: plumbing.ReferenceName("refs/heads/" + version),
-		})
-	}
 	CheckIfError(err)
 }
