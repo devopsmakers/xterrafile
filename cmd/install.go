@@ -60,6 +60,11 @@ var installCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	jww.SetStdoutThreshold(jww.LevelInfo)
+	rootCmd.AddCommand(installCmd)
+}
+
 func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -89,26 +94,21 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		pathWanted := path.Join(tmpDirectory, modulePath)
 
 		err := os.Rename(directory, tmpDirectory)
-		CheckIfError(err)
+		CheckIfError(moduleName, err)
 
 		err = copy.Copy(pathWanted, directory)
-		CheckIfError(err)
+		CheckIfError(moduleName, err)
 		os.RemoveAll(tmpDirectory)
 	}
 	// Cleanup .git directoriy
 	os.RemoveAll(path.Join(directory, ".git"))
 }
 
-func init() {
-	jww.SetStdoutThreshold(jww.LevelInfo)
-	rootCmd.AddCommand(installCmd)
-}
-
 func getRegistrySource(name string, source string, version string) (string, string) {
 	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, version)
 	if version == "master" {
 		err := errors.New("Registry module version must be specified")
-		CheckIfError(err)
+		CheckIfError(name, err)
 	}
 	src := strings.Split(source, "/")
 	namespace, name, provider := src[0], src[1], src[2]
@@ -122,11 +122,11 @@ func getRegistrySource(name string, source string, version string) (string, stri
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", registryDownloadURL, nil)
-	CheckIfError(err)
+	CheckIfError(name, err)
 
 	req.Header.Set("User-Agent", "XTerrafile (https://github.com/devopsmakers/xterrafile)")
 	resp, err := client.Do(req)
-	CheckIfError(err)
+	CheckIfError(name, err)
 	defer resp.Body.Close()
 
 	var githubDownloadURL = ""
@@ -141,7 +141,7 @@ func getRegistrySource(name string, source string, version string) (string, stri
 		return source, version
 	}
 	err = errors.New("Unable to find module / version download url")
-	CheckIfError(err)
+	CheckIfError(name, err)
 	return "", "" // Never reacbhes here
 }
 
@@ -156,7 +156,7 @@ func validRegistry(source string) bool {
 func copyFile(name string, src string, dst string) {
 	jww.INFO.Printf("[%s] Copying from %s", name, src)
 	err := copy.Copy(src, dst)
-	CheckIfError(err)
+	CheckIfError(name, err)
 }
 
 func gitCheckout(name string, repo string, version string, directory string) {
@@ -165,19 +165,19 @@ func gitCheckout(name string, repo string, version string, directory string) {
 	r, err := git.PlainClone(directory, false, &git.CloneOptions{
 		URL: repo,
 	})
-	CheckIfError(err)
+	CheckIfError(name, err)
 
 	h, err := r.ResolveRevision(plumbing.Revision(version))
 	if err != nil {
 		h, err = r.ResolveRevision(plumbing.Revision("origin/" + version))
 	}
-	CheckIfError(err)
+	CheckIfError(name, err)
 
 	w, err := r.Worktree()
-	CheckIfError(err)
+	CheckIfError(name, err)
 
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash: plumbing.NewHash(h.String()),
 	})
-	CheckIfError(err)
+	CheckIfError(name, err)
 }

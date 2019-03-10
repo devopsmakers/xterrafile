@@ -72,8 +72,8 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	yamlFile, err := ioutil.ReadFile(cfgFile)
-	CheckIfError(err)
+	CheckIfError(cfgFile, err)
 
 	err = yaml.Unmarshal(yamlFile, &Config)
-	CheckIfError(err)
+	CheckIfError(cfgFile, err)
 }

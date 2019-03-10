@@ -28,14 +28,15 @@ import (
 )
 
 // CheckIfError should be used to naively panics if an error is not nil.
-func CheckIfError(err error) {
+func CheckIfError(moduleName string, err error) {
 	if err == nil {
 		return
 	}
-	jww.FATAL.Println(err)
+	jww.FATAL.Printf("[%s] %s", moduleName, err)
 	os.Exit(1)
 }
 
+// IContains is case-insensitive string contains check
 func IContains(a, b string) bool {
 	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
 }
