@@ -28,6 +28,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
@@ -49,43 +50,53 @@ var installCmd = &cobra.Command{
 		os.RemoveAll(VendorDir)
 		os.MkdirAll(VendorDir, os.ModePerm)
 
+		var wg sync.WaitGroup
+		wg.Add(len(Config))
+
 		for moduleName, moduleMeta := range Config {
-			moduleSource := moduleMeta.Source
-			moduleVersion := "master"
-			if len(moduleMeta.Version) > 0 {
-				moduleVersion = moduleMeta.Version
-			}
-			modulePath := moduleMeta.Path
-
-			directory := path.Join(VendorDir, moduleName)
-
-			switch {
-			case strings.HasPrefix(moduleSource, "./") || strings.HasPrefix(
-				moduleSource, "../") || strings.HasPrefix(moduleSource, "/"):
-				copyFile(moduleName, moduleSource, directory)
-			case validRegistry(moduleSource):
-				source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
-				gitCheckout(moduleName, source, version, directory)
-			case IContains(moduleSource, "git"):
-				gitCheckout(moduleName, moduleSource, moduleVersion, directory)
-			}
-
-			// If we have a path specified, let's extract it (move and copy stuff).
-			if len(modulePath) > 0 {
-				tmpDirectory := directory + ".tmp"
-				pathWanted := path.Join(tmpDirectory, modulePath)
-
-				err := os.Rename(directory, tmpDirectory)
-				CheckIfError(err)
-
-				err = copy.Copy(pathWanted, directory)
-				CheckIfError(err)
-				os.RemoveAll(tmpDirectory)
-			}
-			// Cleanup .git directoriy
-			os.RemoveAll(path.Join(directory, ".git"))
+			go getModule(moduleName, moduleMeta, &wg)
 		}
+		wg.Wait()
 	},
+}
+
+func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	moduleSource := moduleMeta.Source
+	moduleVersion := "master"
+	if len(moduleMeta.Version) > 0 {
+		moduleVersion = moduleMeta.Version
+	}
+	modulePath := moduleMeta.Path
+
+	directory := path.Join(VendorDir, moduleName)
+
+	switch {
+	case strings.HasPrefix(moduleSource, "./") || strings.HasPrefix(
+		moduleSource, "../") || strings.HasPrefix(moduleSource, "/"):
+		copyFile(moduleName, moduleSource, directory)
+	case validRegistry(moduleSource):
+		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
+		gitCheckout(moduleName, source, version, directory)
+	case IContains(moduleSource, "git"):
+		gitCheckout(moduleName, moduleSource, moduleVersion, directory)
+	}
+
+	// If we have a path specified, let's extract it (move and copy stuff).
+	if len(modulePath) > 0 {
+		tmpDirectory := directory + ".tmp"
+		pathWanted := path.Join(tmpDirectory, modulePath)
+
+		err := os.Rename(directory, tmpDirectory)
+		CheckIfError(err)
+
+		err = copy.Copy(pathWanted, directory)
+		CheckIfError(err)
+		os.RemoveAll(tmpDirectory)
+	}
+	// Cleanup .git directoriy
+	os.RemoveAll(path.Join(directory, ".git"))
 }
 
 func init() {
