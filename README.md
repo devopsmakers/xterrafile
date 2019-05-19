@@ -23,7 +23,7 @@ curl -L https://github.com/devopsmakers/xterrafile/releases/download/v{VERSION}/
 ```
 
 ## How to use
-By default, `xterrafile` expects a file named `Terrafile` which will contain your terraform module dependencies in YAML format.
+By default, `xterrafile` expects a file named `./Terrafile` which will contain your terraform module dependencies in YAML format.
 
 Specifying modules in your `Terrafile`:
 ```
