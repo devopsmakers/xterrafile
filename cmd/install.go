@@ -35,7 +35,57 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+
+	cleanhttp "github.com/hashicorp/go-cleanhttp"
+	getter "github.com/hashicorp/go-getter"
 )
+
+// HEAVILY inpired by Terraform's internal getter / module_install code:
+// https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
+// https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
+
+var goGetterDetectors = []getter.Detector{
+	new(getter.GitHubDetector),
+	new(getter.BitBucketDetector),
+	new(getter.GCSDetector),
+	new(getter.S3Detector),
+	new(getter.FileDetector),
+}
+
+var goGetterNoDetectors = []getter.Detector{}
+
+var goGetterDecompressors = map[string]getter.Decompressor{
+	"bz2": new(getter.Bzip2Decompressor),
+	"gz":  new(getter.GzipDecompressor),
+	"xz":  new(getter.XzDecompressor),
+	"zip": new(getter.ZipDecompressor),
+
+	"tar.bz2":  new(getter.TarBzip2Decompressor),
+	"tar.tbz2": new(getter.TarBzip2Decompressor),
+
+	"tar.gz": new(getter.TarGzipDecompressor),
+	"tgz":    new(getter.TarGzipDecompressor),
+
+	"tar.xz": new(getter.TarXzDecompressor),
+	"txz":    new(getter.TarXzDecompressor),
+}
+
+var goGetterGetters = map[string]getter.Getter{
+	"file":  new(getter.FileGetter),
+	"gcs":   new(getter.GCSGetter),
+	"git":   new(getter.GitGetter),
+	"hg":    new(getter.HgGetter),
+	"s3":    new(getter.S3Getter),
+	"http":  getterHTTPGetter,
+	"https": getterHTTPGetter,
+}
+
+var getterHTTPClient = cleanhttp.DefaultClient()
+
+var getterHTTPGetter = &getter.HttpGetter{
+	Client: getterHTTPClient,
+	Netrc:  true,
+}
 
 var registryBaseURL = "https://registry.terraform.io/v1/modules"
 var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
@@ -68,24 +118,27 @@ func init() {
 func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	moduleSource := moduleMeta.Source
+	moduleSource, modulePath := splitAddrSubdir(moduleMeta.Source)
+
 	moduleVersion := "master"
 	if len(moduleMeta.Version) > 0 {
 		moduleVersion = moduleMeta.Version
 	}
-	modulePath := moduleMeta.Path
+
+	if len(moduleMeta.Path) > 0 {
+		modulePath = moduleMeta.Path
+	}
 
 	directory := path.Join(VendorDir, moduleName)
 
 	switch {
-	case strings.HasPrefix(moduleSource, "./") || strings.HasPrefix(
-		moduleSource, "../") || strings.HasPrefix(moduleSource, "/"):
+	case isLocalSourceAddr(moduleSource):
 		copyFile(moduleName, moduleSource, directory)
-	case validRegistry(moduleSource):
+	case isRegistrySourceAddr(moduleSource):
 		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
 		gitCheckout(moduleName, source, version, directory)
-	case IContains(moduleSource, "git"):
-		gitCheckout(moduleName, moduleSource, moduleVersion, directory)
+	default:
+		getWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
 	}
 
 	// If we have a path specified, let's extract it (move and copy stuff).
@@ -100,8 +153,16 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		CheckIfError(moduleName, err)
 		os.RemoveAll(tmpDirectory)
 	}
-	// Cleanup .git directoriy
+	// Cleanup .git directory
 	os.RemoveAll(path.Join(directory, ".git"))
+}
+
+func isRegistrySourceAddr(addr string) bool {
+	nameRegex := "[0-9A-Za-z](?:[0-9A-Za-z-_]{0,62}[0-9A-Za-z])?"
+	providerRegex := "[0-9a-z]{1,64}"
+	registryRegex := regexp.MustCompile(
+		fmt.Sprintf("^(%s)\\/(%s)\\/(%s)(?:\\/\\/(.*))?$", nameRegex, nameRegex, providerRegex))
+	return registryRegex.MatchString(addr)
 }
 
 func getRegistrySource(name string, source string, version string) (string, string) {
@@ -145,12 +206,21 @@ func getRegistrySource(name string, source string, version string) (string, stri
 	return "", "" // Never reacbhes here
 }
 
-func validRegistry(source string) bool {
-	nameRegex := "[0-9A-Za-z](?:[0-9A-Za-z-_]{0,62}[0-9A-Za-z])?"
-	providerRegex := "[0-9a-z]{1,64}"
-	registryRegex := regexp.MustCompile(
-		fmt.Sprintf("^(%s)\\/(%s)\\/(%s)(?:\\/\\/(.*))?$", nameRegex, nameRegex, providerRegex))
-	return registryRegex.MatchString(source)
+// Handle local modules from relative paths
+var localSourcePrefixes = []string{
+	"./",
+	"../",
+	".\\",
+	"..\\",
+}
+
+func isLocalSourceAddr(addr string) bool {
+	for _, prefix := range localSourcePrefixes {
+		if strings.HasPrefix(addr, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func copyFile(name string, src string, dst string) {
@@ -180,4 +250,28 @@ func gitCheckout(name string, repo string, version string, directory string) {
 		Hash: plumbing.NewHash(h.String()),
 	})
 	CheckIfError(name, err)
+}
+
+func getWithGoGetter(name string, source string, version string, directory string) {
+	jww.INFO.Printf("[%s] Fetching %s from %s", name, version, source)
+
+	client := getter.Client{
+		Src: source,
+		Dst: directory,
+		Pwd: directory,
+
+		Mode: getter.ClientModeDir,
+
+		Detectors:     goGetterNoDetectors, // we already did detection above
+		Decompressors: goGetterDecompressors,
+		Getters:       goGetterGetters,
+	}
+	err := client.Get()
+	CheckIfError(name, err)
+}
+
+// The subDir portion will be returned as empty if no subdir separator
+// ("//") is present in the address.
+func splitAddrSubdir(addr string) (packageAddr, subDir string) {
+	return getter.SourceDirSubdir(addr)
 }
