@@ -2,7 +2,7 @@ terrafile-test-registry:
   source: "terraform-digitalocean-modules/droplet/digitalocean"
   version: "0.1.7"
 terrafile-test-https:
-  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  source: "github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
 terrafile-test-tag:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
   version: "v0.1.7"
@@ -10,7 +10,7 @@ terrafile-test-branch:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
   version: "branch_test"
 terrafile-test-commit:
-  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
+  source: "github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
   version: "2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"
 terrafile-test-path:
   source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"

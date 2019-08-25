@@ -33,8 +33,6 @@ import (
 	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	getter "github.com/hashicorp/go-getter"
@@ -120,7 +118,7 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 
 	moduleSource, modulePath := splitAddrSubdir(moduleMeta.Source)
 
-	moduleVersion := "master"
+	moduleVersion := ""
 	if len(moduleMeta.Version) > 0 {
 		moduleVersion = moduleMeta.Version
 	}
@@ -136,7 +134,7 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		copyFile(moduleName, moduleSource, directory)
 	case isRegistrySourceAddr(moduleSource):
 		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
-		gitCheckout(moduleName, source, version, directory)
+		getWithGoGetter(moduleName, source, version, directory)
 	default:
 		getWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
 	}
@@ -198,10 +196,10 @@ func getRegistrySource(name string, source string, version string) (string, stri
 	if githubDownloadURLRe.MatchString(githubDownloadURL) {
 		matches := githubDownloadURLRe.FindStringSubmatch(githubDownloadURL)
 		user, repo, version := matches[1], matches[2], matches[3]
-		source = fmt.Sprintf("https://github.com/%s/%s.git", user, repo)
+		source = fmt.Sprintf("github.com/%s/%s.git", user, repo)
 		return source, version
 	}
-	err = errors.New("Unable to find module / version download url")
+	err = errors.New("Unable to find module or version download url")
 	CheckIfError(name, err)
 	return "", "" // Never reacbhes here
 }
@@ -229,34 +227,23 @@ func copyFile(name string, src string, dst string) {
 	CheckIfError(name, err)
 }
 
-func gitCheckout(name string, repo string, version string, directory string) {
-	jww.INFO.Printf("[%s] Checking out %s from %s", name, version, repo)
-
-	r, err := git.PlainClone(directory, false, &git.CloneOptions{
-		URL: repo,
-	})
-	CheckIfError(name, err)
-
-	h, err := r.ResolveRevision(plumbing.Revision(version))
-	if err != nil {
-		h, err = r.ResolveRevision(plumbing.Revision("origin/" + version))
-	}
-	CheckIfError(name, err)
-
-	w, err := r.Worktree()
-	CheckIfError(name, err)
-
-	err = w.Checkout(&git.CheckoutOptions{
-		Hash: plumbing.NewHash(h.String()),
-	})
-	CheckIfError(name, err)
-}
-
 func getWithGoGetter(name string, source string, version string, directory string) {
-	jww.INFO.Printf("[%s] Fetching %s from %s", name, version, source)
 
+	// Fixup URLs for Github Detector
+	source = strings.Replace(source, "https://github.com/", "github.com/", 1)
+
+	realmoduleSource, err := getter.Detect(source, directory, getter.Detectors)
+	CheckIfError(name, err)
+
+	jww.DEBUG.Printf("[%s] Detected real source: %s", name, realmoduleSource)
+
+	if len(version) > 0 {
+		realmoduleSource += "?ref=" + version
+	}
+
+	jww.INFO.Printf("[%s] Fetching %s", name, realmoduleSource)
 	client := getter.Client{
-		Src: source,
+		Src: realmoduleSource,
 		Dst: directory,
 		Pwd: directory,
 
@@ -266,7 +253,7 @@ func getWithGoGetter(name string, source string, version string, directory strin
 		Decompressors: goGetterDecompressors,
 		Getters:       goGetterGetters,
 	}
-	err := client.Get()
+	err = client.Get()
 	CheckIfError(name, err)
 }
 
