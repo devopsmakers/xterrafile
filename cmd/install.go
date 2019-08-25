@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -37,56 +38,6 @@ import (
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	getter "github.com/hashicorp/go-getter"
 )
-
-// HEAVILY inpired by Terraform's internal getter / module_install code:
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
-
-var goGetterDetectors = []getter.Detector{
-	new(getter.GitHubDetector),
-	new(getter.BitBucketDetector),
-	new(getter.GCSDetector),
-	new(getter.S3Detector),
-	new(getter.FileDetector),
-}
-
-var goGetterNoDetectors = []getter.Detector{}
-
-var goGetterDecompressors = map[string]getter.Decompressor{
-	"bz2": new(getter.Bzip2Decompressor),
-	"gz":  new(getter.GzipDecompressor),
-	"xz":  new(getter.XzDecompressor),
-	"zip": new(getter.ZipDecompressor),
-
-	"tar.bz2":  new(getter.TarBzip2Decompressor),
-	"tar.tbz2": new(getter.TarBzip2Decompressor),
-
-	"tar.gz": new(getter.TarGzipDecompressor),
-	"tgz":    new(getter.TarGzipDecompressor),
-
-	"tar.xz": new(getter.TarXzDecompressor),
-	"txz":    new(getter.TarXzDecompressor),
-}
-
-var goGetterGetters = map[string]getter.Getter{
-	"file":  new(getter.FileGetter),
-	"gcs":   new(getter.GCSGetter),
-	"git":   new(getter.GitGetter),
-	"hg":    new(getter.HgGetter),
-	"s3":    new(getter.S3Getter),
-	"http":  getterHTTPGetter,
-	"https": getterHTTPGetter,
-}
-
-var getterHTTPClient = cleanhttp.DefaultClient()
-
-var getterHTTPGetter = &getter.HttpGetter{
-	Client: getterHTTPClient,
-	Netrc:  true,
-}
-
-var registryBaseURL = "https://registry.terraform.io/v1/modules"
-var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
 
 // installCmd represents the install command
 var installCmd = &cobra.Command{
@@ -155,6 +106,33 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	os.RemoveAll(path.Join(directory, ".git"))
 }
 
+// Handle local modules from relative paths
+var localSourcePrefixes = []string{
+	"./",
+	"../",
+	".\\",
+	"..\\",
+}
+
+func isLocalSourceAddr(addr string) bool {
+	for _, prefix := range localSourcePrefixes {
+		if strings.HasPrefix(addr, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func copyFile(name string, src string, dst string) {
+	jww.INFO.Printf("[%s] Copying from %s", name, src)
+	err := copy.Copy(src, dst)
+	CheckIfError(name, err)
+}
+
+// Handle modules from Terraform registy
+var registryBaseURL = "https://registry.terraform.io/v1/modules"
+var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
+
 func isRegistrySourceAddr(addr string) bool {
 	nameRegex := "[0-9A-Za-z](?:[0-9A-Za-z-_]{0,62}[0-9A-Za-z])?"
 	providerRegex := "[0-9a-z]{1,64}"
@@ -204,46 +182,80 @@ func getRegistrySource(name string, source string, version string) (string, stri
 	return "", "" // Never reacbhes here
 }
 
-// Handle local modules from relative paths
-var localSourcePrefixes = []string{
-	"./",
-	"../",
-	".\\",
-	"..\\",
+// Handle modules from other sources to reflect:
+// https://www.terraform.io/docs/modules/sources.html
+//
+// HEAVILY inpired by Terraform's internal getter / module_install code:
+// https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
+// https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
+
+var goGetterDetectors = []getter.Detector{
+	new(getter.GitHubDetector),
+	new(getter.BitBucketDetector),
+	new(getter.GCSDetector),
+	new(getter.S3Detector),
+	new(getter.FileDetector),
 }
 
-func isLocalSourceAddr(addr string) bool {
-	for _, prefix := range localSourcePrefixes {
-		if strings.HasPrefix(addr, prefix) {
-			return true
-		}
-	}
-	return false
+var goGetterNoDetectors = []getter.Detector{}
+
+var goGetterDecompressors = map[string]getter.Decompressor{
+	"bz2": new(getter.Bzip2Decompressor),
+	"gz":  new(getter.GzipDecompressor),
+	"xz":  new(getter.XzDecompressor),
+	"zip": new(getter.ZipDecompressor),
+
+	"tar.bz2":  new(getter.TarBzip2Decompressor),
+	"tar.tbz2": new(getter.TarBzip2Decompressor),
+
+	"tar.gz": new(getter.TarGzipDecompressor),
+	"tgz":    new(getter.TarGzipDecompressor),
+
+	"tar.xz": new(getter.TarXzDecompressor),
+	"txz":    new(getter.TarXzDecompressor),
 }
 
-func copyFile(name string, src string, dst string) {
-	jww.INFO.Printf("[%s] Copying from %s", name, src)
-	err := copy.Copy(src, dst)
-	CheckIfError(name, err)
+var goGetterGetters = map[string]getter.Getter{
+	"file":  new(getter.FileGetter),
+	"gcs":   new(getter.GCSGetter),
+	"git":   new(getter.GitGetter),
+	"hg":    new(getter.HgGetter),
+	"s3":    new(getter.S3Getter),
+	"http":  getterHTTPGetter,
+	"https": getterHTTPGetter,
+}
+
+var getterHTTPClient = cleanhttp.DefaultClient()
+
+var getterHTTPGetter = &getter.HttpGetter{
+	Client: getterHTTPClient,
+	Netrc:  true,
 }
 
 func getWithGoGetter(name string, source string, version string, directory string) {
 
-	// Fixup URLs for Github Detector
-	source = strings.Replace(source, "https://github.com/", "github.com/", 1)
-
-	realmoduleSource, err := getter.Detect(source, directory, getter.Detectors)
-	CheckIfError(name, err)
-
-	jww.DEBUG.Printf("[%s] Detected real source: %s", name, realmoduleSource)
-
-	if len(version) > 0 {
-		realmoduleSource += "?ref=" + version
+	// Fixup potential URLs for Github Detector
+	if IContains(source, ".git") {
+		source = strings.Replace(source, "https://github.com/", "github.com/", 1)
 	}
 
-	jww.INFO.Printf("[%s] Fetching %s", name, realmoduleSource)
+	moduleSource, err := getter.Detect(source, directory, getter.Detectors)
+	CheckIfError(name, err)
+
+	jww.DEBUG.Printf("[%s] Detected real source: %s", name, moduleSource)
+
+	realModuleSource, err := url.Parse(moduleSource)
+	CheckIfError(name, err)
+
+	if len(version) > 0 {
+		qParams := realModuleSource.Query()
+		qParams.Set("ref", version)
+		realModuleSource.RawQuery = qParams.Encode()
+	}
+
+	jww.INFO.Printf("[%s] Fetching %s", name, realModuleSource.String())
 	client := getter.Client{
-		Src: realmoduleSource,
+		Src: realModuleSource.String(),
 		Dst: directory,
 		Pwd: directory,
 

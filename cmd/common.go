@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 
 	jww "github.com/spf13/jwalterweatherman"
 )
@@ -33,4 +34,9 @@ func CheckIfError(moduleName string, err error) {
 	}
 	jww.FATAL.Printf("[%s] %s", moduleName, err)
 	os.Exit(1)
+}
+
+// IContains is case-insensitive string contains check
+func IContains(a, b string) bool {
+	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
 }
