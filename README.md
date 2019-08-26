@@ -8,6 +8,9 @@ Inspired by:
 
 ## How to install
 
+### Requirements
+* `git`
+
 ### macOS
 
 ```sh
@@ -30,22 +33,21 @@ Specifying modules in your `Terrafile`:
 # Terraform Registry module
 terraform-digitalocean-droplet:
   source: "terraform-digitalocean-modules/droplet/digitalocean"
-  version: "0.1.7"
+  version: "0.1.7" // If version is empty, the latest will be fetched
 
 # Git module (HTTPS)
 terraform-digitalocean-droplet:
   source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
-  // No version defaults to master branch
+  // No version will checkout default branch (usually master)
 
 # Git module (SSH + Tag)
 terraform-digitalocean-droplet:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
   version: "v0.1.7" // Checkout tags
 
-# Git module (HTTPS + Branch)
+# Git module (HTTPS + Branch as url parameter)
 terraform-digitalocean-droplet:
-  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
-  version: "new_feature" // Checkout branches
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=new_feature"
 
 # Git module (SSH + Commit)
 terraform-digitalocean-droplet:
@@ -58,13 +60,24 @@ terraform-digitalocean-droplet:
   version: "v0.1.7"
   path: "examples/simple"
 
+# Get a path from within a Git monorepo - alternate syntax
+terraform-digitalocean-droplet:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7//examples/simple"
+
+# Compressed archive (extracting a directory from inside archive)
+terraform-digitalocean-droplet:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet/archive/v0.1.7.tar.gz//terraform-digitalocean-droplet-0.1.7"
+
 # Local directory module
 terraform-digitalocean-droplet:
   source: "../../modules/terraform-digitalocean-droplet"
 ```
 
+You can specify modules using Terraform's `source` specifications:
+https://www.terraform.io/docs/modules/sources.html
+
 The `version` can be a tag, a branch or a commit hash. By default, `xterrafile`
-will checkout the master branch of a module.
+will checkout the default branch of a module which is usually `master`.
 
 Modules will be downloaded to `./vendor/xterrafile/` by default.
 

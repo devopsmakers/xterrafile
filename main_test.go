@@ -34,14 +34,14 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	// Assert output
 	for _, output := range []string{
 		"Removing all modules in vendor/xterrafile",
-		"[terrafile-test-registry] Looking up terraform-digitalocean-modules/droplet/digitalocean version 0.1.7 in Terraform registry",
-		"[terrafile-test-registry] Checking out v0.1.7 from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
-		"[terrafile-test-https] Checking out master from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
-		"[terrafile-test-tag] Checking out v0.1.7 from git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
-		"[terrafile-test-branch] Checking out branch_test from git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
-		"[terrafile-test-commit] Checking out 2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
-		"[terrafile-test-path] Checking out v0.1.7 from https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
 		"[terrafile-test-local] Copying from ./test/module",
+		"[terrafile-test-path] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
+		"[terrafile-test-commit] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f",
+		"[terrafile-test-https] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
+		"[terrafile-test-branch] Fetching git::ssh://git@github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=branch_test",
+		"[terrafile-test-tag] Fetching git::ssh://git@github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
+		"[terrafile-test-registry] Looking up terraform-digitalocean-modules/droplet/digitalocean version 0.1.7 in Terraform registry",
+		"[terrafile-test-registry] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
