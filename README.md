@@ -62,7 +62,7 @@ terraform-digitalocean-droplet:
 
 # Get a path from within a Git monorepo - alternate syntax
 terraform-digitalocean-droplet:
-  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7//examples/simple"
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git//examples/simple?ref=v0.1.7"
 
 # Compressed archive (extracting a directory from inside archive)
 terraform-digitalocean-droplet:

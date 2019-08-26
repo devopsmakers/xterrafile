@@ -129,7 +129,7 @@ func copyFile(name string, src string, dst string) {
 	CheckIfError(name, err)
 }
 
-// Handle modules from Terraform registy
+// Handle modules from Terraform registry
 var registryBaseURL = "https://registry.terraform.io/v1/modules"
 var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
 
