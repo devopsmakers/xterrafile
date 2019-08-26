@@ -8,6 +8,9 @@ Inspired by:
 
 ## How to install
 
+### Requirements
+* `git`
+
 ### macOS
 
 ```sh
