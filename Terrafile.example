@@ -13,5 +13,7 @@ terrafile-test-commit:
   version: "2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"
 terrafile-test-path:
   source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7//examples/simple"
+terrafile-test-archive:
+  source: "https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet/archive/v0.1.7.tar.gz//terraform-digitalocean-droplet-0.1.7"
 terrafile-test-local:
   source: "./test/module"
