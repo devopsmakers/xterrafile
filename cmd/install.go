@@ -142,11 +142,12 @@ func isRegistrySourceAddr(addr string) bool {
 }
 
 func getRegistrySource(name string, source string, version string) (string, string) {
-	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, version)
-	if version == "master" {
-		err := errors.New("Registry module version must be specified")
-		CheckIfError(name, err)
+	logVersion := "latest"
+	if len(version) > 0 {
+		logVersion = version
 	}
+	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, logVersion)
+
 	src := strings.Split(source, "/")
 	namespace, name, provider := src[0], src[1], src[2]
 
