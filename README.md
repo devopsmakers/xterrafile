@@ -1,4 +1,5 @@
 # XTerrafile [![Build Status](https://circleci.com/gh/devopsmakers/xterrafile.svg?style=shield)](https://circleci.com/gh/devopsmakers/xterrafile)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile?ref=badge_shield)
 
 `xterrafile` is a binary written in Go to manage external modules from Github for use with (but not limited to) Terraform. See this [article](http://bensnape.com/2016/01/14/terraform-design-patterns-the-terrafile/) for more information on how it was introduced in a Ruby rake task.
 
@@ -117,3 +118,7 @@ Custom "Terrafile" and custom download directory:
 ```
 xterrafile -f Saltfile -d /srv/formulas install
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile?ref=badge_large)
