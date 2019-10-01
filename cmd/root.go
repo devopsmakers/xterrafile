@@ -26,6 +26,7 @@ import (
 	"os"
 	"regexp"
 
+	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -72,8 +73,8 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	yamlFile, err := ioutil.ReadFile(cfgFile)
-	CheckIfError(cfgFile, err)
+	xt.CheckIfError(cfgFile, err)
 
 	err = yaml.Unmarshal(yamlFile, &Config)
-	CheckIfError(cfgFile, err)
+	xt.CheckIfError(cfgFile, err)
 }

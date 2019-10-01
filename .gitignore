@@ -16,6 +16,7 @@
 # Terrafile output
 vendor/modules
 xterrafile
+test/tmp/
 
 # Don't ignore the beautiful code
 !pkg/xterrafile

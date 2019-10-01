@@ -37,6 +37,8 @@ import (
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	getter "github.com/hashicorp/go-getter"
+
+	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
 )
 
 // installCmd represents the install command
@@ -81,8 +83,8 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	directory := path.Join(VendorDir, moduleName)
 
 	switch {
-	case isLocalSourceAddr(moduleSource):
-		copyFile(moduleName, moduleSource, directory)
+	case xt.IsLocalSourceAddr(moduleSource):
+		xt.CopyFile(moduleName, moduleSource, directory)
 	case isRegistrySourceAddr(moduleSource):
 		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
 		getWithGoGetter(moduleName, source, version, directory)
@@ -96,37 +98,14 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		pathWanted := path.Join(tmpDirectory, modulePath)
 
 		err := os.Rename(directory, tmpDirectory)
-		CheckIfError(moduleName, err)
+		xt.CheckIfError(moduleName, err)
 
 		err = copy.Copy(pathWanted, directory)
-		CheckIfError(moduleName, err)
+		xt.CheckIfError(moduleName, err)
 		os.RemoveAll(tmpDirectory)
 	}
 	// Cleanup .git directory
 	os.RemoveAll(path.Join(directory, ".git"))
-}
-
-// Handle local modules from relative paths
-var localSourcePrefixes = []string{
-	"./",
-	"../",
-	".\\",
-	"..\\",
-}
-
-func isLocalSourceAddr(addr string) bool {
-	for _, prefix := range localSourcePrefixes {
-		if strings.HasPrefix(addr, prefix) {
-			return true
-		}
-	}
-	return false
-}
-
-func copyFile(name string, src string, dst string) {
-	jww.INFO.Printf("[%s] Copying from %s", name, src)
-	err := copy.Copy(src, dst)
-	CheckIfError(name, err)
 }
 
 // Handle modules from Terraform registry
@@ -160,11 +139,11 @@ func getRegistrySource(name string, source string, version string) (string, stri
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", registryDownloadURL, nil)
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 
 	req.Header.Set("User-Agent", "XTerrafile (https://github.com/devopsmakers/xterrafile)")
 	resp, err := client.Do(req)
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 	defer resp.Body.Close()
 
 	var githubDownloadURL = ""
@@ -179,7 +158,7 @@ func getRegistrySource(name string, source string, version string) (string, stri
 		return source, version
 	}
 	err = errors.New("Unable to find module or version download url")
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 	return "", "" // Never reacbhes here
 }
 
@@ -236,17 +215,17 @@ var getterHTTPGetter = &getter.HttpGetter{
 func getWithGoGetter(name string, source string, version string, directory string) {
 
 	// Fixup potential URLs for Github Detector
-	if IContains(source, ".git") {
+	if xt.IContains(source, ".git") {
 		source = strings.Replace(source, "https://github.com/", "github.com/", 1)
 	}
 
 	moduleSource, err := getter.Detect(source, directory, getter.Detectors)
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 
 	jww.DEBUG.Printf("[%s] Detected real source: %s", name, moduleSource)
 
 	realModuleSource, err := url.Parse(moduleSource)
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 
 	if len(version) > 0 {
 		qParams := realModuleSource.Query()
@@ -267,7 +246,7 @@ func getWithGoGetter(name string, source string, version string, directory strin
 		Getters:       goGetterGetters,
 	}
 	err = client.Get()
-	CheckIfError(name, err)
+	xt.CheckIfError(name, err)
 }
 
 // The subDir portion will be returned as empty if no subdir separator
