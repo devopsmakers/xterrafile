@@ -14,5 +14,8 @@
 .DS_Store
 
 # Terrafile output
-vendor/xterrafile
+vendor/modules
 xterrafile
+
+# Don't ignore the beautiful code
+!pkg/xterrafile

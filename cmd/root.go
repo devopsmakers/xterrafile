@@ -66,7 +66,7 @@ func init() {
 		cobra.OnInitialize(initConfig)
 	}
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
-	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "module directory")
+	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/modules", "module directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
