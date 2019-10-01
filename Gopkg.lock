@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:17131c6158c724a12a6249bf4e28c239357695cb15ffccb6bc3f246d95e04f09"
-  name = "bou.ke/monkey"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "bdf6dea004c6fd1cdf4b25da8ad45a606c09409a"
-  version = "v1.0.1"
-
-[[projects]]
   digest = "1:e01b0f18de1750ab5568ff6d1fbf882c24add209b0cca9ca2e2466edb9520ed6"
   name = "cloud.google.com/go"
   packages = [
@@ -428,7 +420,7 @@
     "internal/semver",
   ]
   pruneopts = "UT"
-  revision = "7c411dea38b0106295d041581abb0a958e571b7d"
+  revision = "8b695b21ef344be0019c7138fb0c5243255d76ae"
 
 [[projects]]
   digest = "1:deedfa6fd63a3ab08bcdb6b84de7342a1dbcdb02150c5f6cdb50d2098ecb8e75"
@@ -570,7 +562,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "bou.ke/monkey",
     "github.com/hashicorp/go-cleanhttp",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/terraform/registry/regsrc",

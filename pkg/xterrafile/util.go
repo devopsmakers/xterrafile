@@ -27,13 +27,16 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
+// Used to avoid monkey patching in tests
+var osExit = os.Exit
+
 // CheckIfError should be used to naively panics if an error is not nil.
 func CheckIfError(moduleName string, err error) {
 	if err == nil {
 		return
 	}
 	jww.FATAL.Printf("[%s] %s", moduleName, err)
-	os.Exit(1)
+	osExit(1)
 }
 
 // IContains is case-insensitive string contains check

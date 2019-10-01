@@ -3,10 +3,8 @@ package xterrafile
 import (
 	"bytes"
 	"errors"
-	"os"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -18,14 +16,15 @@ func TestCheckIfError(t *testing.T) {
 	var outputBuf bytes.Buffer
 	jww.SetStdoutOutput(&outputBuf)
 
-	// Patch exit to ensure it gets called on error
-	fakeExit := func(int) {
-		panic("os.Exit called")
+	// override osExit to test for usage
+	oldOsExit := osExit
+	defer func() { osExit = oldOsExit }()
+	myExit := func(code int) {
+		panic("osExit called")
 	}
-	patch := monkey.Patch(os.Exit, fakeExit)
-	defer patch.Unpatch()
+	osExit = myExit
 
-	assert.PanicsWithValue(t, "os.Exit called",
+	assert.PanicsWithValue(t, "osExit called",
 		func() { CheckIfError("test-error", errors.New("A test Error")) }, "os.Exit should be called")
 
 	require.Contains(t, outputBuf.String(), "FATAL")
