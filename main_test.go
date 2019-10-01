@@ -33,7 +33,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 	// Assert output
 	for _, output := range []string{
-		"Removing all modules in vendor/xterrafile",
+		"Removing all modules in vendor/modules",
 		"[terrafile-test-local] Copying from ./test/module",
 		"[terrafile-test-path] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
 		"[terrafile-test-commit] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f",
@@ -55,7 +55,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"terrafile-test-path",
 		"terrafile-test-local",
 	} {
-		assert.DirExists(t, path.Join(workingDirectory, "vendor/xterrafile", moduleName))
+		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
 }
 
