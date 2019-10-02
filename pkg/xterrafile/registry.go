@@ -50,11 +50,11 @@ func GetRegistrySource(name string, source string, version string, services *dis
 
 	version, err = getRegistryVersion(regClient, modSrc, version)
 	CheckIfError(name, err)
-
 	jww.INFO.Printf("[%s] Found module version %s at %s", name, version, modSrc.Host())
 
 	regSrc, err := regClient.ModuleLocation(modSrc, version)
 	CheckIfError(name, err)
+	jww.INFO.Printf("[%s] Downloading from source URL %s", name, regSrc)
 
 	return regSrc
 }
