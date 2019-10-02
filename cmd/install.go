@@ -21,17 +21,14 @@
 package cmd
 
 import (
-	"net/url"
 	"os"
 	"path"
-	"strings"
 	"sync"
 
 	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	getter "github.com/hashicorp/go-getter"
 
 	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
@@ -83,9 +80,9 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		xt.CopyFile(moduleName, moduleSource, directory)
 	case xt.IsRegistrySourceAddr(moduleSource):
 		source, version := xt.GetRegistrySource(moduleName, moduleSource, moduleVersion, nil)
-		getWithGoGetter(moduleName, source, version, directory)
+		xt.GetWithGoGetter(moduleName, source, version, directory)
 	default:
-		getWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
+		xt.GetWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
 	}
 
 	// If we have a path specified, let's extract it (move and copy stuff).
@@ -102,91 +99,4 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	}
 	// Cleanup .git directory
 	os.RemoveAll(path.Join(directory, ".git"))
-}
-
-// Handle modules from other sources to reflect:
-// https://www.terraform.io/docs/modules/sources.html
-//
-// HEAVILY inpired by Terraform's internal getter / module_install code:
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
-
-var goGetterDetectors = []getter.Detector{
-	new(getter.GitHubDetector),
-	new(getter.BitBucketDetector),
-	new(getter.GCSDetector),
-	new(getter.S3Detector),
-	new(getter.FileDetector),
-}
-
-var goGetterNoDetectors = []getter.Detector{}
-
-var goGetterDecompressors = map[string]getter.Decompressor{
-	"bz2": new(getter.Bzip2Decompressor),
-	"gz":  new(getter.GzipDecompressor),
-	"xz":  new(getter.XzDecompressor),
-	"zip": new(getter.ZipDecompressor),
-
-	"tar.bz2":  new(getter.TarBzip2Decompressor),
-	"tar.tbz2": new(getter.TarBzip2Decompressor),
-
-	"tar.gz": new(getter.TarGzipDecompressor),
-	"tgz":    new(getter.TarGzipDecompressor),
-
-	"tar.xz": new(getter.TarXzDecompressor),
-	"txz":    new(getter.TarXzDecompressor),
-}
-
-var goGetterGetters = map[string]getter.Getter{
-	"file":  new(getter.FileGetter),
-	"gcs":   new(getter.GCSGetter),
-	"git":   new(getter.GitGetter),
-	"hg":    new(getter.HgGetter),
-	"s3":    new(getter.S3Getter),
-	"http":  getterHTTPGetter,
-	"https": getterHTTPGetter,
-}
-
-var getterHTTPClient = cleanhttp.DefaultClient()
-
-var getterHTTPGetter = &getter.HttpGetter{
-	Client: getterHTTPClient,
-	Netrc:  true,
-}
-
-func getWithGoGetter(name string, source string, version string, directory string) {
-
-	// Fixup potential URLs for Github Detector
-	if xt.IContains(source, ".git") {
-		source = strings.Replace(source, "https://github.com/", "github.com/", 1)
-	}
-
-	moduleSource, err := getter.Detect(source, directory, getter.Detectors)
-	xt.CheckIfError(name, err)
-
-	jww.DEBUG.Printf("[%s] Detected real source: %s", name, moduleSource)
-
-	realModuleSource, err := url.Parse(moduleSource)
-	xt.CheckIfError(name, err)
-
-	if len(version) > 0 {
-		qParams := realModuleSource.Query()
-		qParams.Set("ref", version)
-		realModuleSource.RawQuery = qParams.Encode()
-	}
-
-	jww.INFO.Printf("[%s] Fetching %s", name, realModuleSource.String())
-	client := getter.Client{
-		Src: realModuleSource.String(),
-		Dst: directory,
-		Pwd: directory,
-
-		Mode: getter.ClientModeDir,
-
-		Detectors:     goGetterNoDetectors, // we already did detection above
-		Decompressors: goGetterDecompressors,
-		Getters:       goGetterGetters,
-	}
-	err = client.Get()
-	xt.CheckIfError(name, err)
 }
