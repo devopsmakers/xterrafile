@@ -21,13 +21,9 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -86,7 +82,7 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	case xt.IsLocalSourceAddr(moduleSource):
 		xt.CopyFile(moduleName, moduleSource, directory)
 	case xt.IsRegistrySourceAddr(moduleSource):
-		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
+		source, version := xt.GetRegistrySource(moduleName, moduleSource, moduleVersion, nil)
 		getWithGoGetter(moduleName, source, version, directory)
 	default:
 		getWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
@@ -106,54 +102,6 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	}
 	// Cleanup .git directory
 	os.RemoveAll(path.Join(directory, ".git"))
-}
-
-// Handle modules from Terraform registry
-var registryBaseURL = "https://registry.terraform.io/v1/modules"
-var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
-
-func getRegistrySource(name string, source string, version string) (string, string) {
-	logVersion := "latest"
-	if len(version) > 0 {
-		logVersion = version
-	}
-
-	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, logVersion)
-
-	src := strings.Split(source, "/")
-	namespace, name, provider := src[0], src[1], src[2]
-
-	registryDownloadURL := fmt.Sprintf("%s/%s/%s/%s/%s/download",
-		registryBaseURL,
-		namespace,
-		name,
-		provider,
-		version)
-
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", registryDownloadURL, nil)
-	xt.CheckIfError(name, err)
-
-	req.Header.Set("User-Agent", "XTerrafile (https://github.com/devopsmakers/xterrafile)")
-	resp, err := client.Do(req)
-	xt.CheckIfError(name, err)
-	defer resp.Body.Close()
-
-	var githubDownloadURL = ""
-	if len(resp.Header["X-Terraform-Get"]) > 0 {
-		githubDownloadURL = resp.Header["X-Terraform-Get"][0]
-	}
-	jww.INFO.Printf("[%s] %v", name, registryDownloadURL)
-
-	if githubDownloadURLRe.MatchString(githubDownloadURL) {
-		matches := githubDownloadURLRe.FindStringSubmatch(githubDownloadURL)
-		user, repo, version := matches[1], matches[2], matches[3]
-		source = fmt.Sprintf("github.com/%s/%s.git", user, repo)
-		return source, version
-	}
-	err = errors.New("Unable to find module or version download url")
-	xt.CheckIfError(name, err)
-	return "", "" // Never reaches here
 }
 
 // Handle modules from other sources to reflect:

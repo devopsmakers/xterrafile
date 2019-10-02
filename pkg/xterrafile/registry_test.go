@@ -26,8 +26,10 @@ func TestGetRegistrySource(t *testing.T) {
 	server := test.Registry()
 	defer server.Close()
 
-	module1Src := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "2.1.x", test.Disco(server))
+	module1Src, module1Version := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "2.1.x", test.Disco(server))
 	assert.IsType(t, "string", module1Src, "download URL should be a string")
+	assert.IsType(t, "string", module1Version, "download version should be a string")
+
 }
 
 func TestGetModSrc(t *testing.T) {

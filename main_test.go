@@ -40,8 +40,8 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"[terrafile-test-https] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git",
 		"[terrafile-test-branch] Fetching git::ssh://git@github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=branch_test",
 		"[terrafile-test-tag] Fetching git::ssh://git@github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
-		"[terrafile-test-registry] Looking up terraform-digitalocean-modules/droplet/digitalocean version 0.1.7 in Terraform registry",
-		"[terrafile-test-registry] Fetching git::https://github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=v0.1.7",
+		"[terrafile-test-registry] Found module version 0.1.7 at registry.terraform.io",
+		"[terrafile-test-registry] Fetching https://api.github.com/repos/terraform-digitalocean-modules/terraform-digitalocean-droplet/tarball/v0.1.7//*?archive=tar.gz&ref=0.1.7",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}

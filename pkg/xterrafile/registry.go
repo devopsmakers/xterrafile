@@ -41,7 +41,7 @@ func IsRegistrySourceAddr(addr string) bool {
 }
 
 // GetRegistrySource retrieves a modules download source from a Terraform registry
-func GetRegistrySource(name string, source string, version string, services *disco.Disco) string {
+func GetRegistrySource(name string, source string, version string, services *disco.Disco) (string, string) {
 
 	modSrc, err := getModSrc(source)
 	CheckIfError(name, err)
@@ -56,7 +56,7 @@ func GetRegistrySource(name string, source string, version string, services *dis
 	CheckIfError(name, err)
 	jww.INFO.Printf("[%s] Downloading from source URL %s", name, regSrc)
 
-	return regSrc
+	return regSrc, version
 }
 
 // Helper function to return a valid version
