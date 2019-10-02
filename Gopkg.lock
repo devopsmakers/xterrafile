@@ -27,7 +27,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:f117bbd8668fe865fbef8cceb5d4eaa88a35e8eb6f07da3fa2ff3e05adf2a678"
+  digest = "1:e387d4c35220b50aa89977aa89819da4c6c44d5f059730bedf2e8d018606d507"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -69,8 +69,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "63033a5636f9a9ad84cfaaf97b44e31286fb3c54"
-  version = "v1.25.2"
+  revision = "75175b77ef51932139594fcd2d7b2e278e2a9985"
+  version = "v1.25.3"
 
 [[projects]]
   branch = "master"
@@ -79,6 +79,14 @@
   packages = ["netrc"]
   pruneopts = "UT"
   revision = "9fd32a8b3d3d3f9d43c341bfe098430e07609480"
+
+[[projects]]
+  digest = "1:b6d886569181ec96ca83d529f4d6ba0cbf92ace7bb6f633f90c5f34d9bba7aab"
+  name = "github.com/blang/semver"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba2c2ddd89069b46a7011d4106f6868f17ee1705"
+  version = "v3.6.1"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -160,11 +168,18 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:4f9b577c21257361290225c3da2302fc5b1cd8d07b3539f3519be1e01c522915"
+  digest = "1:93eca741589338a973a4fc4311dbd39278672c1dd81a06c10fae722abd88a099"
   name = "github.com/hashicorp/terraform"
   packages = [
+    "httpclient",
+    "registry",
     "registry/regsrc",
+    "registry/response",
+    "registry/test",
     "svchost",
+    "svchost/auth",
+    "svchost/disco",
+    "version",
   ]
   pruneopts = "UT"
   revision = "abec0acf40d8e31ac612a244cf3886fb3bcce0bb"
@@ -286,6 +301,19 @@
   version = "v0.5.6"
 
 [[projects]]
+  digest = "1:d5ad2fc6e5e0dc1d0c25fe62af803aac0acacb5f7c6b42069b4a795225afbe25"
+  name = "github.com/zclconf/go-cty"
+  packages = [
+    "cty",
+    "cty/convert",
+    "cty/json",
+    "cty/set",
+  ]
+  pruneopts = "UT"
+  revision = "01e2a242a65eb6f8ee372ddcea68c111fd4da15e"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:b984f402fbabb0e9eb0476f0ecfa51d0b2ff11cd0ac03538d6284091033b39ae"
   name = "go.opencensus.io"
   packages = [
@@ -319,7 +347,7 @@
     "cmd/apidiff",
   ]
   pruneopts = "UT"
-  revision = "447a159532efe56c676c00de1b84d9b5ce5b700b"
+  revision = "a1355ae1e2c30eb123356c2a35c2f420652999f9"
 
 [[projects]]
   branch = "master"
@@ -347,7 +375,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "c5a3c61f89f3ed696ec36b629ef1b97541165225"
+  revision = "2ec189313ef0a07735684caebd1ba8b8ebca456f"
 
 [[projects]]
   branch = "master"
@@ -365,11 +393,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1b90e63244513e8514749f45da58e89350d35cb3e12416ce6ed95f41c2a1f177"
+  digest = "1:84ed4fd3f7c52941feec4832e385f61377a01b4c98a0f868f16f10c2469fc0fe"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "c990c680b611ac1aeb7d8f2af94a825f98d69720"
+  revision = "b397fe3ad8ed895c98fa54584f61835a88e65ff5"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -420,7 +448,7 @@
     "internal/semver",
   ]
   pruneopts = "UT"
-  revision = "8b695b21ef344be0019c7138fb0c5243255d76ae"
+  revision = "329c8d646ebe56d31ab9699c2223c7daf1d77991"
 
 [[projects]]
   digest = "1:deedfa6fd63a3ab08bcdb6b84de7342a1dbcdb02150c5f6cdb50d2098ecb8e75"
@@ -562,9 +590,13 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/blang/semver",
     "github.com/hashicorp/go-cleanhttp",
     "github.com/hashicorp/go-getter",
+    "github.com/hashicorp/terraform/registry",
     "github.com/hashicorp/terraform/registry/regsrc",
+    "github.com/hashicorp/terraform/registry/test",
+    "github.com/hashicorp/terraform/svchost/disco",
     "github.com/otiai10/copy",
     "github.com/rendon/testcli",
     "github.com/spf13/cobra",
