@@ -3,6 +3,7 @@ package xterrafile
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform/registry"
 	"github.com/hashicorp/terraform/registry/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,16 +23,7 @@ func TestIsRegistrySourceAddr(t *testing.T) {
 }
 
 func TestGetRegistrySource(t *testing.T) {
-	assert.True(t, GetRegistrySource(
-		"droplet",
-		"terraform-digitalocean-modules/droplet/digitalocean",
-		">=0.1.2"),
-		"private registry path with sub-path should be true")
-	// assert.True(t, GetRegistrySource(
-	// 	"droplet2",
-	// 	"app.terraform.io/terraform-digitalocean-modules/droplet/digitalocean",
-	// 	">= 1.0.0"),
-	// 	"private registry path with sub-path should be true")
+
 }
 
 func TestGetModSrc(t *testing.T) {
@@ -55,17 +47,19 @@ func TestGetRegistryVersion(t *testing.T) {
 	server := test.Registry()
 	defer server.Close()
 
+	testClient := registry.NewClient(test.Disco(server), nil)
+
 	modSrc, _ := getModSrc("example.com/test-versions/name/provider")
-	version, _ := getRegistryVersion(modSrc, ">= 2.0.0 < 2.2.0", test.Disco(server))
+	version, _ := getRegistryVersion(testClient, modSrc, ">= 2.0.0 < 2.2.0")
 	assert.Equal(t, "2.1.1", version, "version should be >= 2.0.0 < 2.2.0")
 
-	_, err := getRegistryVersion(modSrc, ">= 3.0.0", test.Disco(server))
+	_, err := getRegistryVersion(testClient, modSrc, ">= 3.0.0")
 	assert.Error(t, err, "should have returned an error")
 
-	_, err = getRegistryVersion(modSrc, "not.a.version", test.Disco(server))
+	_, err = getRegistryVersion(testClient, modSrc, "not.a.version")
 	assert.Error(t, err, "should return an error")
 
 	modSrc, _ = getModSrc("invalid.com/test-versions/name/provider")
-	_, err = getRegistryVersion(modSrc, ">= 3.0.0", test.Disco(server))
+	_, err = getRegistryVersion(testClient, modSrc, ">= 3.0.0")
 	assert.Error(t, err, "should return an error")
 }

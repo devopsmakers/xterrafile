@@ -41,31 +41,36 @@ func IsRegistrySourceAddr(addr string) bool {
 }
 
 // GetRegistrySource retrieves a modules download source from a Terraform registry
-func GetRegistrySource(name string, source string, version string) bool {
+func GetRegistrySource(name string, source string, version string, services *disco.Disco) string {
+
 	modSrc, err := getModSrc(source)
 	CheckIfError(name, err)
 
-	version, err = getRegistryVersion(modSrc, version, nil)
+	regClient := registry.NewClient(services, nil)
+
+	version, err = getRegistryVersion(regClient, modSrc, version)
 	CheckIfError(name, err)
 
-	jww.ERROR.Printf("[%s] Found module version %s at %s", name, version, modSrc.Host())
+	jww.INFO.Printf("[%s] Found module version %s at %s", name, version, modSrc.Host())
 
-	return true
+	regSrc, err := regClient.ModuleLocation(modSrc, version)
+	CheckIfError(name, err)
+
+	return regSrc
 }
 
 // Helper function to return a valid version
-func getRegistryVersion(modSrc *regsrc.Module, version string, services *disco.Disco) (string, error) {
+func getRegistryVersion(c *registry.Client, modSrc *regsrc.Module, version string) (string, error) {
 	// Don't log from Terraform's HTTP client
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
 
-	regClient := registry.NewClient(services, nil)
-	regClientResp, err := regClient.ModuleVersions(modSrc)
+	validModuleVersionRange, err := semver.ParseRange(version)
 	if err != nil {
 		return "", err
 	}
 
-	validModuleVersionRange, err := semver.ParseRange(version)
+	regClientResp, err := c.ModuleVersions(modSrc)
 	if err != nil {
 		return "", err
 	}
