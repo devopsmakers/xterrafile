@@ -21,5 +21,4 @@ func TestCopyFile(t *testing.T) {
 	os.RemoveAll(tmpTestDir)
 	CopyFile("test-dir", "../../test/module", path.Join(tmpTestDir, moduleName))
 	assert.FileExists(t, path.Join(tmpTestDir, moduleName, "main.tf"), "file should be copied into tmp dir")
-
 }

@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/otiai10/copy"
+
 	jww "github.com/spf13/jwalterweatherman"
 )
 
@@ -37,6 +38,7 @@ var localSourcePrefixes = []string{
 
 // IsLocalSourceAddr returns true if the address is a relative filepath
 func IsLocalSourceAddr(addr string) bool {
+	jww.DEBUG.Printf("Testing if %s is a local source", addr)
 	for _, prefix := range localSourcePrefixes {
 		if strings.HasPrefix(addr, prefix) {
 			return true
