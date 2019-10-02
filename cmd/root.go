@@ -26,6 +26,7 @@ import (
 	"os"
 	"regexp"
 
+	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -66,14 +67,14 @@ func init() {
 		cobra.OnInitialize(initConfig)
 	}
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
-	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/xterrafile", "module directory")
+	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/modules", "module directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	yamlFile, err := ioutil.ReadFile(cfgFile)
-	CheckIfError(cfgFile, err)
+	xt.CheckIfError(cfgFile, err)
 
 	err = yaml.Unmarshal(yamlFile, &Config)
-	CheckIfError(cfgFile, err)
+	xt.CheckIfError(cfgFile, err)
 }

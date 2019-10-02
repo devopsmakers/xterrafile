@@ -21,22 +21,17 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
-	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	getter "github.com/hashicorp/go-getter"
+
+	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
 )
 
 // installCmd represents the install command
@@ -67,7 +62,7 @@ func init() {
 func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	moduleSource, modulePath := splitAddrSubdir(moduleMeta.Source)
+	moduleSource, modulePath := getter.SourceDirSubdir(moduleMeta.Source)
 
 	moduleVersion := ""
 	if len(moduleMeta.Version) > 0 {
@@ -81,13 +76,13 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	directory := path.Join(VendorDir, moduleName)
 
 	switch {
-	case isLocalSourceAddr(moduleSource):
-		copyFile(moduleName, moduleSource, directory)
-	case isRegistrySourceAddr(moduleSource):
-		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
-		getWithGoGetter(moduleName, source, version, directory)
+	case xt.IsLocalSourceAddr(moduleSource):
+		xt.CopyFile(moduleName, moduleSource, directory)
+	case xt.IsRegistrySourceAddr(moduleSource):
+		source, version := xt.GetRegistrySource(moduleName, moduleSource, moduleVersion, nil)
+		xt.GetWithGoGetter(moduleName, source, version, directory)
 	default:
-		getWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
+		xt.GetWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
 	}
 
 	// If we have a path specified, let's extract it (move and copy stuff).
@@ -96,182 +91,12 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 		pathWanted := path.Join(tmpDirectory, modulePath)
 
 		err := os.Rename(directory, tmpDirectory)
-		CheckIfError(moduleName, err)
+		xt.CheckIfError(moduleName, err)
 
 		err = copy.Copy(pathWanted, directory)
-		CheckIfError(moduleName, err)
+		xt.CheckIfError(moduleName, err)
 		os.RemoveAll(tmpDirectory)
 	}
 	// Cleanup .git directory
 	os.RemoveAll(path.Join(directory, ".git"))
-}
-
-// Handle local modules from relative paths
-var localSourcePrefixes = []string{
-	"./",
-	"../",
-	".\\",
-	"..\\",
-}
-
-func isLocalSourceAddr(addr string) bool {
-	for _, prefix := range localSourcePrefixes {
-		if strings.HasPrefix(addr, prefix) {
-			return true
-		}
-	}
-	return false
-}
-
-func copyFile(name string, src string, dst string) {
-	jww.INFO.Printf("[%s] Copying from %s", name, src)
-	err := copy.Copy(src, dst)
-	CheckIfError(name, err)
-}
-
-// Handle modules from Terraform registry
-var registryBaseURL = "https://registry.terraform.io/v1/modules"
-var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
-
-func isRegistrySourceAddr(addr string) bool {
-	nameRegex := "[0-9A-Za-z](?:[0-9A-Za-z-_]{0,62}[0-9A-Za-z])?"
-	providerRegex := "[0-9a-z]{1,64}"
-	registryRegex := regexp.MustCompile(
-		fmt.Sprintf("^(%s)\\/(%s)\\/(%s)(?:\\/\\/(.*))?$", nameRegex, nameRegex, providerRegex))
-	return registryRegex.MatchString(addr)
-}
-
-func getRegistrySource(name string, source string, version string) (string, string) {
-	logVersion := "latest"
-	if len(version) > 0 {
-		logVersion = version
-	}
-	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, logVersion)
-
-	src := strings.Split(source, "/")
-	namespace, name, provider := src[0], src[1], src[2]
-
-	registryDownloadURL := fmt.Sprintf("%s/%s/%s/%s/%s/download",
-		registryBaseURL,
-		namespace,
-		name,
-		provider,
-		version)
-
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", registryDownloadURL, nil)
-	CheckIfError(name, err)
-
-	req.Header.Set("User-Agent", "XTerrafile (https://github.com/devopsmakers/xterrafile)")
-	resp, err := client.Do(req)
-	CheckIfError(name, err)
-	defer resp.Body.Close()
-
-	var githubDownloadURL = ""
-	if len(resp.Header["X-Terraform-Get"]) > 0 {
-		githubDownloadURL = resp.Header["X-Terraform-Get"][0]
-	}
-
-	if githubDownloadURLRe.MatchString(githubDownloadURL) {
-		matches := githubDownloadURLRe.FindStringSubmatch(githubDownloadURL)
-		user, repo, version := matches[1], matches[2], matches[3]
-		source = fmt.Sprintf("github.com/%s/%s.git", user, repo)
-		return source, version
-	}
-	err = errors.New("Unable to find module or version download url")
-	CheckIfError(name, err)
-	return "", "" // Never reacbhes here
-}
-
-// Handle modules from other sources to reflect:
-// https://www.terraform.io/docs/modules/sources.html
-//
-// HEAVILY inpired by Terraform's internal getter / module_install code:
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
-// https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
-
-var goGetterDetectors = []getter.Detector{
-	new(getter.GitHubDetector),
-	new(getter.BitBucketDetector),
-	new(getter.GCSDetector),
-	new(getter.S3Detector),
-	new(getter.FileDetector),
-}
-
-var goGetterNoDetectors = []getter.Detector{}
-
-var goGetterDecompressors = map[string]getter.Decompressor{
-	"bz2": new(getter.Bzip2Decompressor),
-	"gz":  new(getter.GzipDecompressor),
-	"xz":  new(getter.XzDecompressor),
-	"zip": new(getter.ZipDecompressor),
-
-	"tar.bz2":  new(getter.TarBzip2Decompressor),
-	"tar.tbz2": new(getter.TarBzip2Decompressor),
-
-	"tar.gz": new(getter.TarGzipDecompressor),
-	"tgz":    new(getter.TarGzipDecompressor),
-
-	"tar.xz": new(getter.TarXzDecompressor),
-	"txz":    new(getter.TarXzDecompressor),
-}
-
-var goGetterGetters = map[string]getter.Getter{
-	"file":  new(getter.FileGetter),
-	"gcs":   new(getter.GCSGetter),
-	"git":   new(getter.GitGetter),
-	"hg":    new(getter.HgGetter),
-	"s3":    new(getter.S3Getter),
-	"http":  getterHTTPGetter,
-	"https": getterHTTPGetter,
-}
-
-var getterHTTPClient = cleanhttp.DefaultClient()
-
-var getterHTTPGetter = &getter.HttpGetter{
-	Client: getterHTTPClient,
-	Netrc:  true,
-}
-
-func getWithGoGetter(name string, source string, version string, directory string) {
-
-	// Fixup potential URLs for Github Detector
-	if IContains(source, ".git") {
-		source = strings.Replace(source, "https://github.com/", "github.com/", 1)
-	}
-
-	moduleSource, err := getter.Detect(source, directory, getter.Detectors)
-	CheckIfError(name, err)
-
-	jww.DEBUG.Printf("[%s] Detected real source: %s", name, moduleSource)
-
-	realModuleSource, err := url.Parse(moduleSource)
-	CheckIfError(name, err)
-
-	if len(version) > 0 {
-		qParams := realModuleSource.Query()
-		qParams.Set("ref", version)
-		realModuleSource.RawQuery = qParams.Encode()
-	}
-
-	jww.INFO.Printf("[%s] Fetching %s", name, realModuleSource.String())
-	client := getter.Client{
-		Src: realModuleSource.String(),
-		Dst: directory,
-		Pwd: directory,
-
-		Mode: getter.ClientModeDir,
-
-		Detectors:     goGetterNoDetectors, // we already did detection above
-		Decompressors: goGetterDecompressors,
-		Getters:       goGetterGetters,
-	}
-	err = client.Get()
-	CheckIfError(name, err)
-}
-
-// The subDir portion will be returned as empty if no subdir separator
-// ("//") is present in the address.
-func splitAddrSubdir(addr string) (packageAddr, subDir string) {
-	return getter.SourceDirSubdir(addr)
 }

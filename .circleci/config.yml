@@ -20,7 +20,7 @@ jobs:
           name: build_and_test
           command: |
             go build -v
-            go test -v
+            go test -v ./...
   deploy:
     <<: *defaults
     steps:

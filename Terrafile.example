@@ -1,6 +1,6 @@
 terrafile-test-registry:
   source: "terraform-digitalocean-modules/droplet/digitalocean"
-  version: "0.1.7"
+  version: "0.1.x"
 terrafile-test-https:
   source: "github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
 terrafile-test-tag:
