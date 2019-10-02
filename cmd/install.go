@@ -69,7 +69,7 @@ func init() {
 func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	moduleSource, modulePath := splitAddrSubdir(moduleMeta.Source)
+	moduleSource, modulePath := getter.SourceDirSubdir(moduleMeta.Source)
 
 	moduleVersion := ""
 	if len(moduleMeta.Version) > 0 {
@@ -85,7 +85,7 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	switch {
 	case xt.IsLocalSourceAddr(moduleSource):
 		xt.CopyFile(moduleName, moduleSource, directory)
-	case isRegistrySourceAddr(moduleSource):
+	case xt.IsRegistrySourceAddr(moduleSource):
 		source, version := getRegistrySource(moduleName, moduleSource, moduleVersion)
 		getWithGoGetter(moduleName, source, version, directory)
 	default:
@@ -112,19 +112,12 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 var registryBaseURL = "https://registry.terraform.io/v1/modules"
 var githubDownloadURLRe = regexp.MustCompile(`https://[^/]+/repos/([^/]+)/([^/]+)/tarball/([^/]+)/.*`)
 
-func isRegistrySourceAddr(addr string) bool {
-	nameRegex := "[0-9A-Za-z](?:[0-9A-Za-z-_]{0,62}[0-9A-Za-z])?"
-	providerRegex := "[0-9a-z]{1,64}"
-	registryRegex := regexp.MustCompile(
-		fmt.Sprintf("^(%s)\\/(%s)\\/(%s)(?:\\/\\/(.*))?$", nameRegex, nameRegex, providerRegex))
-	return registryRegex.MatchString(addr)
-}
-
 func getRegistrySource(name string, source string, version string) (string, string) {
 	logVersion := "latest"
 	if len(version) > 0 {
 		logVersion = version
 	}
+
 	jww.INFO.Printf("[%s] Looking up %s version %s in Terraform registry", name, source, logVersion)
 
 	src := strings.Split(source, "/")
@@ -150,6 +143,7 @@ func getRegistrySource(name string, source string, version string) (string, stri
 	if len(resp.Header["X-Terraform-Get"]) > 0 {
 		githubDownloadURL = resp.Header["X-Terraform-Get"][0]
 	}
+	jww.INFO.Printf("[%s] %v", name, registryDownloadURL)
 
 	if githubDownloadURLRe.MatchString(githubDownloadURL) {
 		matches := githubDownloadURLRe.FindStringSubmatch(githubDownloadURL)
@@ -159,7 +153,7 @@ func getRegistrySource(name string, source string, version string) (string, stri
 	}
 	err = errors.New("Unable to find module or version download url")
 	xt.CheckIfError(name, err)
-	return "", "" // Never reacbhes here
+	return "", "" // Never reaches here
 }
 
 // Handle modules from other sources to reflect:
@@ -247,10 +241,4 @@ func getWithGoGetter(name string, source string, version string, directory strin
 	}
 	err = client.Get()
 	xt.CheckIfError(name, err)
-}
-
-// The subDir portion will be returned as empty if no subdir separator
-// ("//") is present in the address.
-func splitAddrSubdir(addr string) (packageAddr, subDir string) {
-	return getter.SourceDirSubdir(addr)
 }

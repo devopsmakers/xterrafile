@@ -3,6 +3,7 @@ package xterrafile
 import (
 	"bytes"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,7 @@ func TestCheckIfError(t *testing.T) {
 	// Capture logging
 	var outputBuf bytes.Buffer
 	jww.SetStdoutOutput(&outputBuf)
+	defer jww.SetStdoutOutput(os.Stdout)
 
 	// override osExit to test for usage
 	oldOsExit := osExit
