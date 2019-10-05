@@ -45,9 +45,9 @@ var installCmd = &cobra.Command{
 		os.MkdirAll(VendorDir, os.ModePerm)
 
 		var wg sync.WaitGroup
-		wg.Add(len(Config))
+		wg.Add(len(Config.Modules))
 
-		for moduleName, moduleMeta := range Config {
+		for moduleName, moduleMeta := range Config.Modules {
 			go getModule(moduleName, moduleMeta, &wg)
 		}
 		wg.Wait()
