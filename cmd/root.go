@@ -37,13 +37,20 @@ type module struct {
 	Path    string `yaml:"path"`
 }
 
+type cfgFileContents struct {
+	VendorDirFromFile string            `yaml:"vendor_dir"`
+	Modules           map[string]module `yaml:",inline"`
+}
+
 var cfgFile string
 
 // VendorDir is the directory to download modules to
 var VendorDir string
 
+const defaultVendorDir = "vendor/modules"
+
 // Config holds our module information
-var Config map[string]module
+var Config cfgFileContents
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -62,12 +69,13 @@ func Execute() {
 
 func init() {
 	// Exclude certain commands from initConfig
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
+	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", defaultVendorDir, "module directory")
+
 	commandRe := regexp.MustCompile(`(version|help)`)
 	if (len(os.Args) > 1) && !commandRe.MatchString(os.Args[1]) {
 		cobra.OnInitialize(initConfig)
 	}
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "Terrafile", "config file")
-	rootCmd.PersistentFlags().StringVarP(&VendorDir, "directory", "d", "vendor/modules", "module directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -77,4 +85,7 @@ func initConfig() {
 
 	err = yaml.Unmarshal(yamlFile, &Config)
 	xt.CheckIfError(cfgFile, err)
+	if (VendorDir == defaultVendorDir) && (Config.VendorDirFromFile != "") {
+		VendorDir = Config.VendorDirFromFile
+	}
 }
