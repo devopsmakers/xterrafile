@@ -26,7 +26,7 @@ import (
 	"os"
 	"regexp"
 
-	xt "github.com/devopsmakers/xterrafile/pkg/xterrafile"
+	xt "github.com/devopsmakers/xterrafile/pkg"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
