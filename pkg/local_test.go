@@ -16,9 +16,9 @@ func TestIsLocalSourceAddr(t *testing.T) {
 }
 
 func TestCopyFile(t *testing.T) {
-	tmpTestDir := "../../test/tmp/"
+	tmpTestDir := "../test/tmp/"
 	moduleName := "test-module"
 	os.RemoveAll(tmpTestDir)
-	CopyFile("test-dir", "../../test/module", path.Join(tmpTestDir, moduleName))
+	CopyFile("test-dir", "../test/module", path.Join(tmpTestDir, moduleName))
 	assert.FileExists(t, path.Join(tmpTestDir, moduleName, "main.tf"), "file should be copied into tmp dir")
 }
