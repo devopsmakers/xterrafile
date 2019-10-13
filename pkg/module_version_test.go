@@ -6,8 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsValidVersion(t *testing.T) {
+	assert.False(t, isValidVersion("2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"))
+	assert.False(t, isValidVersion(">= 2.0.0 < 2.2.0"))
+	assert.True(t, isValidVersion("1.1.1"))
+}
+
 func TestIsConditionalVersion(t *testing.T) {
 	assert.False(t, isConditionalVersion("2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"))
+	assert.True(t, isConditionalVersion(">= 2.0.0 < 2.2.0"))
 	assert.True(t, isConditionalVersion("1.1.1"))
 }
 

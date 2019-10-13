@@ -26,6 +26,14 @@ import (
 	"github.com/blang/semver"
 )
 
+func isValidVersion(version string) bool {
+	_, err := semver.ParseTolerant(version)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func isConditionalVersion(versionConditional string) bool {
 	_, err := semver.ParseRange(versionConditional)
 	if err != nil {
