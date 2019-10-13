@@ -6,6 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsConditionalVersion(t *testing.T) {
+	assert.False(t, isConditionalVersion("2e6b9729f3f6ea3ef5190bac0b0e1544a01fd80f"))
+	assert.True(t, isConditionalVersion("1.1.1"))
+}
+
 func TestGetModuleVersion(t *testing.T) {
 	var version string
 	var err error

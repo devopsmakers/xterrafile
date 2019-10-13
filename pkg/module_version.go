@@ -26,6 +26,14 @@ import (
 	"github.com/blang/semver"
 )
 
+func isConditionalVersion(versionConditional string) bool {
+	_, err := semver.ParseRange(versionConditional)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func getModuleVersion(sourceVersions []string, versionConditional string) (string, error) {
 	var validSourceVersions []semver.Version
 
