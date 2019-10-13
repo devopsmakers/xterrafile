@@ -45,11 +45,6 @@ func isConditionalVersion(versionConditional string) bool {
 func getModuleVersion(sourceVersions []string, versionConditional string) (string, error) {
 	var validSourceVersions []semver.Version
 
-	validModuleVersionRange, err := semver.ParseRange(versionConditional)
-	if err != nil {
-		return "", err
-	}
-
 	for _, sourceVersion := range sourceVersions {
 		v, err := semver.ParseTolerant(sourceVersion)
 		if err != nil {
@@ -59,6 +54,15 @@ func getModuleVersion(sourceVersions []string, versionConditional string) (strin
 	}
 
 	semver.Sort(validSourceVersions)
+
+	if versionConditional == "" {
+		return validSourceVersions[len(validSourceVersions)-1].String(), nil
+	}
+
+	validModuleVersionRange, err := semver.ParseRange(versionConditional)
+	if err != nil {
+		return "", err
+	}
 
 	for i := range validSourceVersions {
 		v := validSourceVersions[len(validSourceVersions)-1-i]

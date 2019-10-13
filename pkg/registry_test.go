@@ -30,6 +30,14 @@ func TestGetRegistrySource(t *testing.T) {
 	assert.IsType(t, "string", module1Src, "download URL should be a string")
 	assert.IsType(t, "string", module1Version, "download version should be a string")
 
+	module1Src, module1Version = GetRegistrySource("droplet", "example.com/test-versions/name/provider", "2.1.0", test.Disco(server))
+	assert.IsType(t, "string", module1Src, "download URL should be a string")
+	assert.IsType(t, "string", module1Version, "download version should be a string")
+
+	module1Src, module1Version = GetRegistrySource("droplet", "example.com/test-versions/name/provider", "", test.Disco(server))
+	assert.IsType(t, "string", module1Src, "download URL should be a string")
+	assert.IsType(t, "string", module1Version, "download version should be a string")
+
 }
 
 func TestGetModSrc(t *testing.T) {
@@ -56,16 +64,6 @@ func TestGetRegistryVersion(t *testing.T) {
 	testClient := registry.NewClient(test.Disco(server), nil)
 
 	modSrc, _ := getModSrc("example.com/test-versions/name/provider")
-	version, _ := getRegistryVersion(testClient, modSrc, ">= 2.0.0 < 2.2.0")
-	assert.Equal(t, "2.1.1", version, "version should be >= 2.0.0 < 2.2.0")
-
-	_, err := getRegistryVersion(testClient, modSrc, ">= 3.0.0")
-	assert.Error(t, err, "should have returned an error")
-
-	_, err = getRegistryVersion(testClient, modSrc, "not.a.version")
-	assert.Error(t, err, "should return an error")
-
-	modSrc, _ = getModSrc("invalid.com/test-versions/name/provider")
-	_, err = getRegistryVersion(testClient, modSrc, ">= 3.0.0")
-	assert.Error(t, err, "should return an error")
+	versions := getRegistryVersions(testClient, modSrc)
+	assert.Equal(t, []string{"2.2.0", "2.1.1", "1.2.2", "1.2.1"}, versions)
 }
