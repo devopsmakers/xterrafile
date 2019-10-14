@@ -51,7 +51,7 @@ func GetRegistrySource(name string, source string, version string, services *dis
 	case isValidVersion(version):
 		_ = version
 	default:
-		modVersions = getRegistryVersions(regClient, modSrc)
+		modVersions = getRegistryModuleVersions(regClient, modSrc)
 		version, err = getModuleVersion(modVersions, version)
 		CheckIfError(name, err)
 	}
@@ -66,7 +66,7 @@ func GetRegistrySource(name string, source string, version string, services *dis
 }
 
 // Helper function to return a list of available module versions
-func getRegistryVersions(c *registry.Client, modSrc *regsrc.Module) []string {
+func getRegistryModuleVersions(c *registry.Client, modSrc *regsrc.Module) []string {
 	// Don't log from Terraform's HTTP client
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)

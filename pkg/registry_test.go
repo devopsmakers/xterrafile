@@ -57,13 +57,13 @@ func TestGetModSrc(t *testing.T) {
 	assert.Panics(t, func() { module3Src.Host().Normalized() }, "accessing host should panic")
 }
 
-func TestGetRegistryVersion(t *testing.T) {
+func TestGetRegistryModuleVersions(t *testing.T) {
 	server := test.Registry()
 	defer server.Close()
 
 	testClient := registry.NewClient(test.Disco(server), nil)
 
 	modSrc, _ := getModSrc("example.com/test-versions/name/provider")
-	versions := getRegistryVersions(testClient, modSrc)
+	versions := getRegistryModuleVersions(testClient, modSrc)
 	assert.Equal(t, []string{"2.2.0", "2.1.1", "1.2.2", "1.2.1"}, versions)
 }
