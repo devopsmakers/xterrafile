@@ -55,6 +55,7 @@ func getModuleVersion(sourceVersions []string, versionConditional string) (strin
 
 	semver.Sort(validSourceVersions)
 
+	// Assume latest if we get passed an empty string
 	if versionConditional == "" {
 		return validSourceVersions[len(validSourceVersions)-1].String(), nil
 	}
