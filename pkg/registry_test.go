@@ -26,9 +26,17 @@ func TestGetRegistrySource(t *testing.T) {
 	server := test.Registry()
 	defer server.Close()
 
-	module1Src, module1Version := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "2.1.x", test.Disco(server))
+	module1Src, module1Version := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "1.2.x", test.Disco(server))
 	assert.IsType(t, "string", module1Src, "download URL should be a string")
-	assert.IsType(t, "string", module1Version, "download version should be a string")
+	assert.Equal(t, "1.2.2", module1Version)
+
+	module2Src, module2Version := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "2.1.0", test.Disco(server))
+	assert.IsType(t, "string", module2Src, "download URL should be a string")
+	assert.Equal(t, "2.1.0", module2Version)
+
+	module3Src, module3Version := GetRegistrySource("droplet", "example.com/test-versions/name/provider", "", test.Disco(server))
+	assert.IsType(t, "string", module3Src, "download URL should be a string")
+	assert.Equal(t, "2.2.0", module3Version)
 
 }
 
@@ -49,23 +57,13 @@ func TestGetModSrc(t *testing.T) {
 	assert.Panics(t, func() { module3Src.Host().Normalized() }, "accessing host should panic")
 }
 
-func TestGetRegistryVersion(t *testing.T) {
+func TestGetRegistryModuleVersions(t *testing.T) {
 	server := test.Registry()
 	defer server.Close()
 
 	testClient := registry.NewClient(test.Disco(server), nil)
 
 	modSrc, _ := getModSrc("example.com/test-versions/name/provider")
-	version, _ := getRegistryVersion(testClient, modSrc, ">= 2.0.0 < 2.2.0")
-	assert.Equal(t, "2.1.1", version, "version should be >= 2.0.0 < 2.2.0")
-
-	_, err := getRegistryVersion(testClient, modSrc, ">= 3.0.0")
-	assert.Error(t, err, "should have returned an error")
-
-	_, err = getRegistryVersion(testClient, modSrc, "not.a.version")
-	assert.Error(t, err, "should return an error")
-
-	modSrc, _ = getModSrc("invalid.com/test-versions/name/provider")
-	_, err = getRegistryVersion(testClient, modSrc, ">= 3.0.0")
-	assert.Error(t, err, "should return an error")
+	versions := getRegistryModuleVersions(testClient, modSrc)
+	assert.Equal(t, []string{"2.2.0", "2.1.1", "1.2.2", "1.2.1"}, versions)
 }

@@ -21,11 +21,9 @@
 package xterrafile
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 
-	"github.com/blang/semver"
 	"github.com/hashicorp/terraform/registry"
 	"github.com/hashicorp/terraform/registry/regsrc"
 	"github.com/hashicorp/terraform/svchost/disco"
@@ -42,14 +40,22 @@ func IsRegistrySourceAddr(addr string) bool {
 
 // GetRegistrySource retrieves a modules download source from a Terraform registry
 func GetRegistrySource(name string, source string, version string, services *disco.Disco) (string, string) {
+	var modVersions []string
 
 	modSrc, err := getModSrc(source)
 	CheckIfError(name, err)
 
 	regClient := registry.NewClient(services, nil)
 
-	version, err = getRegistryVersion(regClient, modSrc, version)
-	CheckIfError(name, err)
+	switch {
+	case isValidVersion(version):
+		_ = version
+	default:
+		modVersions = getRegistryModuleVersions(regClient, modSrc)
+		version, err = getModuleVersion(modVersions, version)
+		CheckIfError(name, err)
+	}
+
 	jww.INFO.Printf("[%s] Found module version %s at %s", name, version, modSrc.Host())
 
 	regSrc, err := regClient.ModuleLocation(modSrc, version)
@@ -59,35 +65,22 @@ func GetRegistrySource(name string, source string, version string, services *dis
 	return regSrc, version
 }
 
-// Helper function to return a valid version
-func getRegistryVersion(c *registry.Client, modSrc *regsrc.Module, version string) (string, error) {
+// Helper function to return a list of available module versions
+func getRegistryModuleVersions(c *registry.Client, modSrc *regsrc.Module) []string {
 	// Don't log from Terraform's HTTP client
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
 
-	validModuleVersionRange, err := semver.ParseRange(version)
-	if err != nil {
-		return "", err
-	}
-
-	regClientResp, err := c.ModuleVersions(modSrc)
-	if err != nil {
-		return "", err
-	}
+	regClientResp, _ := c.ModuleVersions(modSrc)
 
 	regModule := regClientResp.Modules[0]
-	for _, moduleVersion := range regModule.Versions {
-		v, _ := semver.ParseTolerant(moduleVersion.Version)
+	moduleVersions := []string{}
 
-		if validModuleVersionRange(v) {
-			return v.String(), nil
-		}
+	for _, moduleVersion := range regModule.Versions {
+		moduleVersions = append(moduleVersions, moduleVersion.Version)
 	}
-	err = fmt.Errorf(
-		"Unable to find a valid version at %s newest version is %s",
-		modSrc.Host(),
-		regModule.Versions[0].Version)
-	return "", err
+
+	return moduleVersions
 }
 
 // Helper function to parse and return a module source
