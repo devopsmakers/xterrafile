@@ -1,0 +1,15 @@
+{
+  "name": "xterrafile",
+  "description": "a pure Go tool for managing vendored modules and formulas using a YAML file",
+  "version": "2.1.1",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "go build -v ; go test -v ./...",
+    "gitbranch": "BRANCH=$(git symbolic-ref HEAD 2>/dev/null | cut -d\"/\" -f 3); if [[ \"$BRANCH\" != \"master\" ]]; then echo \"you must be on master branch to release\"; exit 1 ; fi",
+    "gitstatus": "STATUS=$(git status --porcelain 2>&1); echo $STATUS; if [[ ! -z \"$STATUS\" ]]; then exit 1; fi;",
+    "gittest": "yarn gitbranch; yarn gitstatus",
+    "preversion": "yarn gittest; yarn test",
+    "postversion": "git push --follow-tags"
+  }
+}
