@@ -8,13 +8,8 @@
     "test": "go build -v ; go test -v ./...",
     "gitbranch": "BRANCH=$(git rev-parse --abbrev-ref HEAD); if [[ \"$BRANCH\" != \"master\" ]]; then echo \"you must be on master branch to release\"; exit 1 ; fi",
     "gitstatus": "STATUS=$(git status --porcelain 2>&1); echo $STATUS; if [[ ! -z \"$STATUS\" ]]; then exit 1; fi;",
-<<<<<<< Updated upstream
-    "gittest": "yarn gitbranch; yarn gitstatus",
-    "preversion": "yarn gittest; yarn test",
-=======
     "gittest": "yarn gitbranch && yarn gitstatus",
     "preversion": "yarn gittest && yarn test",
->>>>>>> Stashed changes
     "postversion": "git push --follow-tags"
   }
 }
