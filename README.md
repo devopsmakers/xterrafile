@@ -1,4 +1,4 @@
-# XTerrafile [![Build Status](https://circleci.com/gh/devopsmakers/xterrafile.svg?style=shield)](https://circleci.com/gh/devopsmakers/xterrafile) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile?ref=badge_shield)
+# XTerrafile [![Build Status](https://circleci.com/gh/devopsmakers/xterrafile.svg?style=shield)](https://circleci.com/gh/devopsmakers/xterrafile) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdevopsmakers%2Fxterrafile?ref=badge_shield) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 `xterrafile` is a binary written in Go to manage external modules from various sources for use with (but not limited to) Terraform. See this [article](http://bensnape.com/2016/01/14/terraform-design-patterns-the-terrafile/) for more information on how it was introduced in a Ruby rake task.
 
