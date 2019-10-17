@@ -12,8 +12,7 @@
   },
   "standard-version": {
     "scripts": {
-      "prerelease": "yarn gittest && yarn test",
-      "postrelease": "git push --follow-tags origin master"
+      "prerelease": "yarn gittest && yarn test"
     }
   },
   "dependencies": {
