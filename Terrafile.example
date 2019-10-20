@@ -7,7 +7,7 @@ terrafile-test-https:
   source: "github.com/terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
 terrafile-test-tag:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git"
-  version: "v0.1.7"
+  version: "> 0.0.2 < 0.1.1"
 terrafile-test-branch:
   source: "git@github.com:terraform-digitalocean-modules/terraform-digitalocean-droplet.git?ref=branch_test"
 terrafile-test-commit:

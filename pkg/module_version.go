@@ -22,6 +22,7 @@ package xterrafile
 
 import (
 	"errors"
+	"sort"
 
 	"github.com/blang/semver"
 )
@@ -44,6 +45,7 @@ func isConditionalVersion(versionConditional string) bool {
 
 func getModuleVersion(sourceVersions []string, versionConditional string) (string, error) {
 	var validSourceVersions []semver.Version
+	var originalVersions []string
 
 	for _, sourceVersion := range sourceVersions {
 		v, err := semver.ParseTolerant(sourceVersion)
@@ -51,13 +53,15 @@ func getModuleVersion(sourceVersions []string, versionConditional string) (strin
 			continue
 		}
 		validSourceVersions = append(validSourceVersions, v)
+		originalVersions = append(originalVersions, sourceVersion)
 	}
 
 	semver.Sort(validSourceVersions)
+	sort.Strings(originalVersions)
 
 	// Assume latest if we get passed an empty string
 	if versionConditional == "" {
-		return validSourceVersions[len(validSourceVersions)-1].String(), nil
+		return originalVersions[len(originalVersions)-1], nil
 	}
 
 	validModuleVersionRange, err := semver.ParseRange(versionConditional)
@@ -67,8 +71,9 @@ func getModuleVersion(sourceVersions []string, versionConditional string) (strin
 
 	for i := range validSourceVersions {
 		v := validSourceVersions[len(validSourceVersions)-1-i]
+		o := originalVersions[len(originalVersions)-1-i]
 		if validModuleVersionRange(v) {
-			return v.String(), nil
+			return o, nil
 		}
 	}
 
