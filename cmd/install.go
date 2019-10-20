@@ -81,6 +81,9 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 	case xt.IsRegistrySourceAddr(moduleSource):
 		source, version := xt.GetRegistrySource(moduleName, moduleSource, moduleVersion, nil)
 		xt.GetWithGoGetter(moduleName, source, version, directory)
+	case xt.IsGitSourceAddr(moduleSource):
+		source, version := xt.GetGitSource(moduleName, moduleSource, moduleVersion)
+		xt.GetWithGoGetter(moduleName, source, version, directory)
 	default:
 		xt.GetWithGoGetter(moduleName, moduleSource, moduleVersion, directory)
 	}
