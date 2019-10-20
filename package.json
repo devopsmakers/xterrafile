@@ -3,6 +3,7 @@
   "description": "a pure Go tool for managing vendored modules and formulas using a YAML file",
   "version": "2.2.0",
   "license": "MIT",
+  "private": true,
   "scripts": {
     "test": "go build -v ; go test -v ./...",
     "gitbranch": "BRANCH=$(git rev-parse --abbrev-ref HEAD); if [[ \"$BRANCH\" != \"master\" ]]; then echo \"you must be on master branch to release\" >&2; exit 1 ; fi",

@@ -19,7 +19,7 @@ node_modules/
 
 # Terrafile output
 vendor/modules
-xterrafile
+/xterrafile
 test/tmp/
 
 # Don't ignore the beautiful code
