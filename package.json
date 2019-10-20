@@ -8,7 +8,8 @@
     "test": "go build -v ; go test -v ./...",
     "gitbranch": "BRANCH=$(git rev-parse --abbrev-ref HEAD); if [[ \"$BRANCH\" != \"master\" ]]; then echo \"you must be on master branch to release\" >&2; exit 1 ; fi",
     "gitstatus": "STATUS=$(git status --porcelain 2>&1); echo $STATUS >&2; if [[ ! -z \"$STATUS\" ]]; then exit 1; fi;",
-    "gittest": "yarn gitbranch && yarn gitstatus"
+    "gittest": "yarn gitbranch && yarn gitstatus",
+    "push": "git push --follow-tags origin master"
   },
   "standard-version": {
     "scripts": {
