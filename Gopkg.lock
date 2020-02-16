@@ -463,7 +463,7 @@
     "internal/packagesinternal",
   ]
   pruneopts = "UT"
-  revision = "5916a50871fbb77650a14d484c89ca39f9487118"
+  revision = "b320d3a0f5a29dea7f95f1ca5c4cbef0ac24a304"
 
 [[projects]]
   branch = "master"
