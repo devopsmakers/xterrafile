@@ -95,8 +95,9 @@ func GetWithGoGetter(name string, source string, version string, directory strin
 	realModuleSource, err := url.Parse(moduleSource)
 	CheckIfError(name, err)
 
-	if len(version) > 0 {
-		qParams := realModuleSource.Query()
+	qParams := realModuleSource.Query()
+
+	if len(version) > 0 && len(qParams) == 0 {
 		qParams.Set("ref", version)
 		realModuleSource.RawQuery = qParams.Encode()
 	}
