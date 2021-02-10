@@ -1,0 +1,4 @@
+FROM gcr.io/distroless/static
+COPY xterrafile /
+USER nonroot
+ENTRYPOINT ["/xterrafile"]
