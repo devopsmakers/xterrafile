@@ -11,8 +11,10 @@ import (
 func TestIsLocalSourceAddr(t *testing.T) {
 	assert.True(t, IsLocalSourceAddr("./some/path"), "relative to current directory should be true")
 	assert.True(t, IsLocalSourceAddr("../some/path"), "relative to current directory should be true")
-	assert.False(t, IsLocalSourceAddr("/some/absolute/path"), "absolute path should be false")
+	assert.True(t, IsLocalSourceAddr("~/someones/home/path"), "home path should be true")
+	assert.True(t, IsLocalSourceAddr("/some/absolute/path"), "absolute path should be true")
 	assert.False(t, IsLocalSourceAddr("http://something"), "http source should be false")
+	assert.False(t, IsLocalSourceAddr("git::/something"), "git::http source should be false")
 }
 
 func TestCopyFile(t *testing.T) {
