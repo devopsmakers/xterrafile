@@ -81,7 +81,6 @@ var getterHTTPGetter = &getter.HttpGetter{
 
 // GetWithGoGetter downloads objects using go-getter
 func GetWithGoGetter(name string, source string, version string, directory string) {
-
 	// Fixup potential URLs for Github Detector
 	if IContains(source, ".git") {
 		source = strings.Replace(source, "https://github.com/", "github.com/", 1)

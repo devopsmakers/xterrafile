@@ -22,6 +22,9 @@ func TestGetModuleVersion(t *testing.T) {
 	var version string
 	var err error
 
+	version, _ = getModuleVersion([]string{"v2.9.0","v2.10.0","v2.65.0","v2.66.0"}, "2.66.0") // https://github.com/devopsmakers/xterrafile/issues/30
+	assert.Equal(t, "v2.66.0", version, "version should be v2.66.0")
+
 	version, _ = getModuleVersion([]string{"1.1.1", "2.1.1", "2.0.1"}, "1.1.1")
 	assert.Equal(t, "1.1.1", version, "version should be 1.1.1")
 
@@ -35,8 +38,11 @@ func TestGetModuleVersion(t *testing.T) {
 	assert.EqualError(t, err, "Could not get version from string: \">=no\"")
 
 	_, err = getModuleVersion([]string{"not", "a", "version"}, ">= 2.0.0 < 2.2.0")
-	assert.EqualError(t, err, "Unable to find a valid version of this module")
+	assert.EqualError(t, err, "unable to find a valid version of this module")
 
 	_, err = getModuleVersion([]string{}, ">= 2.0.0 < 2.2.0")
-	assert.EqualError(t, err, "Unable to find a valid version of this module")
+	assert.EqualError(t, err, "unable to find a valid version of this module")
+
+	_, err = getModuleVersion([]string{}, "")
+	assert.EqualError(t, err, "unable to find a valid version of this module")
 }

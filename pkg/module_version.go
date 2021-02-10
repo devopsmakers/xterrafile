@@ -27,41 +27,58 @@ import (
 	"github.com/blang/semver"
 )
 
+type semverMap struct {
+	semver semver.Version
+	original string
+}
+
+type semverMapList []semverMap
+
+func (s semverMapList) Len() int {
+	return len(s)
+}
+
+func (s semverMapList) Less(i, j int) bool {
+	return s[i].semver.GT(s[j].semver)
+}
+
+func (s semverMapList) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 func isValidVersion(version string) bool {
 	_, err := semver.ParseTolerant(version)
-	if err != nil {
-		return false
-	}
-	return true
+
+	return err == nil
 }
 
 func isConditionalVersion(versionConditional string) bool {
 	_, err := semver.ParseRange(versionConditional)
-	if err != nil {
-		return false
-	}
-	return true
+
+	return err == nil
 }
 
 func getModuleVersion(sourceVersions []string, versionConditional string) (string, error) {
-	var validSourceVersions []semver.Version
-	var originalVersions []string
+	var versions = make(semverMapList, 0, len(sourceVersions))
 
 	for _, sourceVersion := range sourceVersions {
 		v, err := semver.ParseTolerant(sourceVersion)
 		if err != nil {
+			// todo log something
 			continue
 		}
-		validSourceVersions = append(validSourceVersions, v)
-		originalVersions = append(originalVersions, sourceVersion)
+		versions = append(versions, semverMap{semver: v, original: sourceVersion})
 	}
 
-	semver.Sort(validSourceVersions)
-	sort.Strings(originalVersions)
+	sort.Sort(versions)
+
+	if len(versions) == 0 {
+		return "", errors.New("unable to find a valid version of this module")
+	}
 
 	// Assume latest if we get passed an empty string
 	if versionConditional == "" {
-		return originalVersions[len(originalVersions)-1], nil
+		return versions[0].original, nil
 	}
 
 	validModuleVersionRange, err := semver.ParseRange(versionConditional)
@@ -69,14 +86,11 @@ func getModuleVersion(sourceVersions []string, versionConditional string) (strin
 		return "", err
 	}
 
-	for i := range validSourceVersions {
-		v := validSourceVersions[len(validSourceVersions)-1-i]
-		o := originalVersions[len(originalVersions)-1-i]
-		if validModuleVersionRange(v) {
-			return o, nil
+	for _, version := range versions {
+		if validModuleVersionRange(version.semver) {
+			return version.original, nil
 		}
 	}
 
-	err = errors.New("Unable to find a valid version of this module")
-	return "", err
+	return "", errors.New("unable to find a valid version of this module")
 }
