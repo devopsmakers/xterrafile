@@ -36,14 +36,6 @@ import (
 // https://github.com/hashicorp/terraform/blob/master/internal/initwd/getter.go
 // https://github.com/hashicorp/terraform/blob/master/internal/initwd/module_install.go
 
-var goGetterDetectors = []getter.Detector{
-	new(getter.GitHubDetector),
-	new(getter.BitBucketDetector),
-	new(getter.GCSDetector),
-	new(getter.S3Detector),
-	new(getter.FileDetector),
-}
-
 var goGetterNoDetectors = []getter.Detector{}
 
 var goGetterDecompressors = map[string]getter.Decompressor{
@@ -81,7 +73,6 @@ var getterHTTPGetter = &getter.HttpGetter{
 
 // GetWithGoGetter downloads objects using go-getter
 func GetWithGoGetter(name string, source string, version string, directory string) {
-
 	// Fixup potential URLs for Github Detector
 	if IContains(source, ".git") {
 		source = strings.Replace(source, "https://github.com/", "github.com/", 1)

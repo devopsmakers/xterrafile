@@ -24,3 +24,5 @@ test/tmp/
 
 # Don't ignore the beautiful code
 !pkg/xterrafile
+dist
+.idea

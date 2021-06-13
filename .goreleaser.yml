@@ -1,54 +1,221 @@
+project_name: xterrafile
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+  - DOCKER_CLI_EXPERIMENTAL=enabled
+
+release:
+  prerelease: auto
+  draft: false
+  github:
+    owner: devopsmakers
+    name: xterrafile
+
+snapshot:
+  name_template: "{{ .Version }}+next+{{ .ShortCommit }}"
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
 builds:
-  -
-    env:
-     - CGO_ENABLED=0
+  - id: xterrafile
+    main: ./main.go
+    binary: xterrafile
+    goos:
+      - linux
+      - darwin
+      - freebsd
+      - windows
+
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ignore:
+      - goos: darwin
+        goarch: arm
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+
     ldflags:
-     - -s -w -X github.com/devopsmakers/xterrafile/cmd.version={{.Version}} -X github.com/devopsmakers/xterrafile/cmd.commit={{.ShortCommit}} -X github.com/devopsmakers/xterrafile/cmd.date={{.Date}}
-archive:
+      - -s -w
+      - -X github.com/devopsmakers/xterrafile/cmd.version={{.Version}}
+      - -X github.com/devopsmakers/xterrafile/cmd.commit={{.ShortCommit}}
+      - -X github.com/devopsmakers/xterrafile/cmd.date={{.Date}}
+
+archives:
   # Replacements for GOOS and GOARCH in the archive name.
   # Keys should be valid GOOSs or GOARCHs.
   # Values are the respective replacements.
   # Default is empty.
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    386: i386
-    amd64: x86_64
+  - id: xterrafile
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      386: i386
+      amd64: x86_64
 
-  # Additional files/globs you want to add to the archive.
-  # Defaults are any files matching `LICENCE*`, `LICENSE*`,
-  # `README*` and `CHANGELOG*` (case-insensitive).
-  files:
-    - none*
-brew:
-  # Repository to push the tap to.
-  github:
-    owner: devopsmakers
-    name: homebrew-xterrafile
+    # Additional files/globs you want to add to the archive.
+    # Defaults are any files matching `LICENCE*`, `LICENSE*`,
+    # `README*` and `CHANGELOG*` (case-insensitive).
+    files:
+      - none*
 
-  # Git author used to commit to the repository.
-  # Defaults are shown.
-  commit_author:
-    name: pysysops
-    email: tim.birkett@devopsmakers.com
+brews:
+  -
+    # Repository to push the tap to.
+    tap:
+      owner: devopsmakers
+      name: homebrew-xterrafile
 
-  # Folder inside the repository to put the formula.
-  # Default is the root folder.
-  folder: Formula
+    # Git author used to commit to the repository.
+    # Defaults are shown.
+    commit_author:
+      name: pysysops
+      email: tim.birkett@devopsmakers.com
 
-  # Your app's homepage.
-  # Default is empty.
-  homepage: "https://github.com/devopsmakers/xterrafile"
+    # Folder inside the repository to put the formula.
+    # Default is the root folder.
+    folder: Formula
 
-  # Your app's description.
-  # Default is empty.
-  description: "Systematically manage external modules from Github for use in Terraform."
+    # Your app's homepage.
+    # Default is empty.
+    homepage: "https://github.com/devopsmakers/xterrafile"
+
+    # Your app's description.
+    # Default is empty.
+    description: "Systematically manage external modules from Github for use in Terraform."
+
 changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
-    - '^Update README'
-    - Merge pull request
-    - Merge branch
+      - '^docs:'
+      - '^test:'
+      - '^Update README'
+      - Merge pull request
+      - Merge branch
+
+dockers:
+  - &docker_build
+    goos: linux
+    goarch: amd64
+    ids:
+      - xterrafile
+    skip_push: false
+    use_buildx: true
+
+    image_templates:
+      - &docker_tag_amd64 "ghcr.io/devopsmakers/xterrafile:{{ .Tag }}-amd64"
+      - &docker_major_amd64 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}-amd64"
+      - &docker_major_minor_amd64 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}.{{ .Minor }}-amd64"
+      - &docker_latest_amd64 "ghcr.io/devopsmakers/xterrafile:latest-amd64"
+
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - &build_flag_tmpl_date "--label=org.opencontainers.image.created={{.Date}}"
+      - &build_flag_tmpl_name "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - &build_flag_tmpl_commit "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - &build_flag_tmpl_version "--label=org.opencontainers.image.version={{.Version}}"
+      - &build_flag_tmpl_url "--label=org.opencontainers.image.source={{.GitURL}}"
+
+    dockerfile: Dockerfile.goreleaser
+
+  - <<: *docker_build
+    goarch: arm
+    goarm: 7
+    image_templates:
+      - &docker_tag_arm32v7 "ghcr.io/devopsmakers/xterrafile:latest-arm32v7"
+      - &docker_major_arm32v7 "ghcr.io/devopsmakers/xterrafile:{{ .Tag }}-arm32v7"
+      - &docker_major_minor_arm32v7 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}-arm32v7"
+      - &docker_latest_arm32v7 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}.{{ .Minor }}-arm32v7"
+
+    build_flag_templates:
+      - "--platform=linux/arm"
+      - *build_flag_tmpl_date
+      - *build_flag_tmpl_name
+      - *build_flag_tmpl_commit
+      - *build_flag_tmpl_version
+      - *build_flag_tmpl_url
+
+  - <<: *docker_build
+    goarch: arm
+    goarm: 6
+    image_templates:
+      - &docker_tag_arm32v6 "ghcr.io/devopsmakers/xterrafile:latest-arm32v6"
+      - &docker_major_arm32v6 "ghcr.io/devopsmakers/xterrafile:{{ .Tag }}-arm32v6"
+      - &docker_major_minor_arm32v6 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}-arm32v6"
+      - &docker_latest_arm32v6 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}.{{ .Minor }}-arm32v6"
+
+    build_flag_templates:
+      - "--platform=linux/arm/v6"
+      - *build_flag_tmpl_date
+      - *build_flag_tmpl_name
+      - *build_flag_tmpl_commit
+      - *build_flag_tmpl_version
+      - *build_flag_tmpl_url
+
+  - <<: *docker_build
+    goarch: arm64
+    image_templates:
+      - &docker_tag_arm64v8 "ghcr.io/devopsmakers/xterrafile:latest-arm64v8"
+      - &docker_major_arm64v8 "ghcr.io/devopsmakers/xterrafile:{{ .Tag }}-arm64v8"
+      - &docker_major_minor_arm64v8 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}-arm64v8"
+      - &docker_latest_arm64v8 "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}.{{ .Minor }}-arm64v8"
+
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - *build_flag_tmpl_date
+      - *build_flag_tmpl_name
+      - *build_flag_tmpl_commit
+      - *build_flag_tmpl_version
+      - *build_flag_tmpl_url
+
+docker_manifests:
+  - name_template: "ghcr.io/devopsmakers/xterrafile:latest"
+    image_templates:
+      - *docker_latest_amd64
+      - *docker_latest_arm32v6
+      - *docker_latest_arm32v7
+      - *docker_latest_arm64v8
+  - name_template: "ghcr.io/devopsmakers/xterrafile:{{ .Tag }}"
+    image_templates:
+      - *docker_tag_amd64
+      - *docker_tag_arm32v6
+      - *docker_tag_arm32v7
+      - *docker_tag_arm64v8
+  - name_template: "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}"
+    image_templates:
+      - *docker_major_amd64
+      - *docker_major_arm32v6
+      - *docker_major_arm32v7
+      - *docker_major_arm64v8
+  - name_template: "ghcr.io/devopsmakers/xterrafile:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - *docker_major_minor_amd64
+      - *docker_major_minor_arm32v6
+      - *docker_major_minor_arm32v7
+      - *docker_major_minor_arm64v8

@@ -41,8 +41,8 @@ var installCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		jww.WARN.Printf("Removing all modules in %s", VendorDir)
 
-		os.RemoveAll(VendorDir)
-		os.MkdirAll(VendorDir, os.ModePerm)
+		_ = os.RemoveAll(VendorDir)
+		_ = os.MkdirAll(VendorDir, os.ModePerm)
 
 		var wg sync.WaitGroup
 		wg.Add(len(Config.Modules))
@@ -98,8 +98,8 @@ func getModule(moduleName string, moduleMeta module, wg *sync.WaitGroup) {
 
 		err = copy.Copy(pathWanted, directory)
 		xt.CheckIfError(moduleName, err)
-		os.RemoveAll(tmpDirectory)
+		_ = os.RemoveAll(tmpDirectory)
 	}
 	// Cleanup .git directory
-	os.RemoveAll(path.Join(directory, ".git"))
+	_ = os.RemoveAll(path.Join(directory, ".git"))
 }

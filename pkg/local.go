@@ -21,6 +21,7 @@
 package xterrafile
 
 import (
+	"github.com/mitchellh/go-homedir"
 	"strings"
 
 	"github.com/otiai10/copy"
@@ -30,6 +31,8 @@ import (
 
 // Handle local modules from relative paths
 var localSourcePrefixes = []string{
+	"/",
+	"~/",
 	"./",
 	"../",
 	".\\",
@@ -50,6 +53,10 @@ func IsLocalSourceAddr(addr string) bool {
 // CopyFile copies files to the correct destination
 func CopyFile(name string, src string, dst string) {
 	jww.INFO.Printf("[%s] Copying from %s", name, src)
-	err := copy.Copy(src, dst)
+	src, err := homedir.Expand(src)
+	CheckIfError(name, err)
+	dst, err = homedir.Expand(dst)
+	CheckIfError(name, err)
+	err = copy.Copy(src, dst)
 	CheckIfError(name, err)
 }
