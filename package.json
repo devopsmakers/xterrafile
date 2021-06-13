@@ -17,6 +17,6 @@
     }
   },
   "dependencies": {
-    "standard-version": "^7.0.0"
+    "standard-version": "^8.0.1"
   }
 }
